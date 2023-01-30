@@ -26,17 +26,14 @@ static struct list_node_t * new_list_node(void * data) {
 }
 
 void * get_list_node_data(const struct list_node_t * node) {
-	assert(node);
 	return node->data;
 }
 
 struct list_node_t * get_successor(const struct list_node_t* node) {
-	assert(node);
 	return node->successor;
 }
 
 struct list_node_t * get_predecessor(const struct list_node_t * node) {
-	assert(node);
 	return node->predecessor;
 }
 
