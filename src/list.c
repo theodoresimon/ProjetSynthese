@@ -81,27 +81,46 @@ void increase_list_size(struct list_t * L) {
 }
 
 void decrease_list_size(struct list_t * L) {
-	// A FAIRE
+	L->numelm --;
 }
 
 void set_list_size(struct list_t * L, int newSize) {
-	// A FAIRE
+	L->numelm = newSize;
 }
 
 void set_head(struct list_t * L, struct list_node_t * newHead) {
-	// A FAIRE
+	L->head = newHead;
 }
 
 void set_tail(struct list_t * L, struct list_node_t * newTail) {
-	// A FAIRE
+	L->tail = newTail;
 }
 
 void delete_list(struct list_t * L, int deleteData) {
-	// A FAIRE
+	if (deleteData == 1){
+		while (L->head != NULL){
+			struct list_node_t * temp = L->head;
+			L->head = L->head->successor;
+			L->freeData(temp->data);
+			free(temp)
+		}
+	else if (deleteData == 0){
+		while (L->head != NULL){
+			struct list_node_t * temp = L->head;
+			L->head = L->head->successor;
+			free(temp)
+			}
+	}
+	else{
+		ShowMessage("Erreur src.list.c:delete_list , deleteData doit être égal à 0 ou 1  ", 1)
+	}
+	}
 }
 
 void view_list(const struct list_t * L) {
-	// A FAIRE
+	for(struct list_node_t *temp = L->head; temp != NULL ; temp = temp->successor){
+		L->viewData(temp->data);
+	}
 }
 
 void list_insert_first(struct list_t * L, void * data) {
