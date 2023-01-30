@@ -142,11 +142,29 @@ void list_insert_first(struct list_t * L, void * data) {
 }
 
 void list_insert_last(struct list_t * L, void * data) {
-	// A FAIRE
+	struct list_node_t * newListNode = new_list_node(data);
+	if (list_is_empty(L)) {
+		L->head = newListNode;
+		L->tail = newListNode;
+	}
+	else {
+		L->tail->successor = newListNode;
+		newListNode->predecessor = L->tail;
+		L->tail = newListNode;
+	}
+	increase_list_size(L);
 }
 
 void list_insert_after(struct list_t * L, void * data, struct list_node_t * ptrelm) {
-	// A FAIRE
+	increase_list_size(L);
+	if (list_is_empty(L)) {
+		list_insert_first(L, data);
+	}
+	else {
+		struct list_node_t * newListNode = new_list_node(data);
+		newListNode->successor = ptrelm->successor;
+		ptrelm->successor = newListNode;
+	}
 }
 
 void * list_remove_first(struct list_t * L) {
