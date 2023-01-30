@@ -31,19 +31,20 @@ struct list_node_t * get_successor(const struct list_node_t* node) {
 }
 
 struct list_node_t * get_predecessor(const struct list_node_t * node) {
-	// A FAIRE
+	assert(node);
+	return node->predecessor;
 }
 
 void set_list_node_data(struct list_node_t * node, void * newData) {
-	// A FAIRE
+	node->data = newData;
 }
 
 void set_successor(struct list_node_t * node, struct list_node_t * newSucc) {
-	// A FAIRE
+	node->sucessor = newSucc;
 }
 
 void set_predecessor(struct list_node_t * node, struct list_node_t * newPred) {
-	// A FAIRE
+	node->predecessor = newPred;
 }
 
 /********************************************************************
