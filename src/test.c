@@ -56,6 +56,9 @@ void test_list_insert_last() {
 	if (compare_lists(L, tab, 3) == 0) printf("problème");
 
 	// Il manque la libération de la mémoire. C'est à vous !
+	free(i1);
+	free(i2);
+	free(i3);
 }
 
 int main() {
