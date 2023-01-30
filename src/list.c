@@ -138,7 +138,16 @@ void view_list(const struct list_t * L) {
 }
 
 void list_insert_first(struct list_t * L, void * data) {
-	// A FAIRE
+	struct list_node_t * temp = new_list_node(data);
+
+	if(list_is_empty(L)){
+		L->head = temp;
+		L->tail = temp;
+	}else{
+		temp->successor = L->head;
+		L->head = temp;
+	}
+	L->numelm++;
 }
 
 void list_insert_last(struct list_t * L, void * data) {
