@@ -19,15 +19,20 @@
  * @return struct list_node_t* Le nouveau nœud créé.
  */
 static struct list_node_t * new_list_node(void * data) {
-	// A FAIRE
+	struct list_node_t * newListNode = malloc(sizeof(struct list_node_t));
+	newListNode->data = data;
+	newListNode->successor = NULL;
+	newListNode->predecessor = NULL;
 }
 
 void * get_list_node_data(const struct list_node_t * node) {
-	// A FAIRE
+	assert(node);
+	return node->data;
 }
 
 struct list_node_t * get_successor(const struct list_node_t* node) {
-    // A FAIRE
+	assert(node);
+	return node->successor;
 }
 
 struct list_node_t * get_predecessor(const struct list_node_t * node) {
