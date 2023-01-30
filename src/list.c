@@ -113,18 +113,21 @@ void delete_list(struct list_t * L, int deleteData) {
 			struct list_node_t * temp = L->head;
 			L->head = L->head->successor;
 			L->freeData(temp->data);
-			free(temp)
+			free(temp);
 		}
-	else if (deleteData == 0){
-		while (L->head != NULL){
-			struct list_node_t * temp = L->head;
-			L->head = L->head->successor;
-			free(temp)
+	}
+	else {
+		if (deleteData == 0){
+			while (L->head != NULL){
+				struct list_node_t * temp = L->head;
+				L->head = L->head->successor;
+				free(temp);
+				}
 			}
-	}
-	else{
-		ShowMessage("Erreur src.list.c:delete_list , deleteData doit être égal à 0 ou 1  ", 1)
-	}
+		else {
+			ShowMessage("Erreur src.list.c:delete_list , deleteData doit être égal à 0 ou 1  ", 1);
+		}
+		
 	}
 }
 
