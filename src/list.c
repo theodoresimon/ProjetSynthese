@@ -45,7 +45,7 @@ void set_list_node_data(struct list_node_t * node, void * newData) {
 }
 
 void set_successor(struct list_node_t * node, struct list_node_t * newSucc) {
-	node->sucessor = newSucc;
+	node->successor = newSucc;
 }
 
 void set_predecessor(struct list_node_t * node, struct list_node_t * newPred) {
