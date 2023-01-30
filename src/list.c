@@ -57,27 +57,38 @@ void set_predecessor(struct list_node_t * node, struct list_node_t * newPred) {
  ********************************************************************/
 
 struct list_t * new_list(void (*viewData)(const void*), void (*freeData)(void*)) {
-	// A FAIRE
+	struct list_t * newList = malloc(sizeof(struct list_t));
+	newList->head = NULL;
+	newList->tail = NULL;
+	newList->numelm = 0;
+	newList->viewData = viewData;
+	newList->freeData = freeData;
+	return newList;
 }
 
 int list_is_empty(struct list_t * L) {
-	// A FAIRE
+	if (L->head == NULL){
+		return 1;
+	}
+	else{
+		return 0;
+	}
 }
 
 int get_list_size(const struct list_t * L) {
-	// A FAIRE
+	return L->numelm;
 }
 
 struct list_node_t * get_list_head(const struct list_t * L) {
-	// A FAIRE
+	return L->head;
 }
 
 struct list_node_t * get_list_tail(const struct list_t * L) {
-	// A FAIRE
+	return L->tail;
 }
 
 void increase_list_size(struct list_t * L) {
-	// A FAIRE
+	L->numelm ++;
 }
 
 void decrease_list_size(struct list_t * L) {
