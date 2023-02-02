@@ -22,59 +22,68 @@
  * @return struct tree_node_t* Le nouveau nœud créé.
  */
 static struct tree_node_t * new_tree_node(void * key, void * data) {
-	// A FAIRE
+	struct tree_node_t * newTreeNode = malloc(sizeof(struct tree_node_t));
+	newTreeNode->key = key;
+	newTreeNode->data = data;
+	newTreeNode->left = NULL;
+	newTreeNode->right = NULL;
+	newTreeNode->bfactor = 0;
+	return newTreeNode;
 }
 
 int tree_node_is_empty(struct tree_node_t * node) {
-	// A FAIRE
+	if (node == NULL) {
+		return 1;
+	}
+	return 0;
 }
 
 void * get_tree_node_key(const struct tree_node_t * node) {
-	// A FAIRE
+	return node->key;
 }
 
 void * get_tree_node_data(const struct tree_node_t * node) {
-	// A FAIRE
+	return node->data;
 }
 
 struct tree_node_t * get_left(const struct tree_node_t * node) {
-	// A FAIRE
+	return node->left;
 }
 
 struct tree_node_t * get_right(const struct tree_node_t * node) {
-	// A FAIRE
+	return node->right;
 }
 
 int get_bfactor(const struct tree_node_t * node) {
-	// A FAIRE
+	return node->bfactor;
 }
 
 void set_tree_node_key(struct tree_node_t * node, void * newKey) {
-	// A FAIRE
+	node->key = newKey;
 }
 
 void set_tree_node_data(struct tree_node_t * node, void * newData) {
-	// A FAIRE
+	node->data = newData;
 }
 
 void set_left(struct tree_node_t * node, struct tree_node_t * newLeft) {
-	// A FAIRE
+	node->left = newLeft;
 }
 
 void set_right(struct tree_node_t * node, struct tree_node_t * newRight) {
-	// A FAIRE
+	node->right = newRight;
 }
 
 void increase_bfactor(struct tree_node_t * node) {
-	// A FAIRE
+	node->bfactor++;
 }
 
 void decrease_bfactor(struct tree_node_t * node) {
-	// A FAIRE
+	node->bfactor--;
 }
 
 void set_bfactor(struct tree_node_t * node, int newBFactor) {
-	// A FAIRE
+	node->bfactor = newBFactor;
 }
 
 /*********************************************************************
@@ -88,7 +97,10 @@ struct tree_t * new_tree(int balanced, int (*preceed)(const void *, const void *
 }
 
 int tree_is_empty(struct tree_t * T) {
-	// A FAIRE
+	if(T->root == NULL) {
+		return 1;
+	}
+	return 0;
 }
 
 int tree_is_balanced(struct tree_t * T) {
@@ -96,11 +108,11 @@ int tree_is_balanced(struct tree_t * T) {
 }
 
 int get_tree_size(const struct tree_t * T) {
-	// A FAIRE
+	return T->numelm;
 }
 
 struct tree_node_t * get_root(const struct tree_t * T) {
-	// A FAIRE
+	return T->root;
 }
 
 void increase_tree_size(struct tree_t * T) {
@@ -112,7 +124,7 @@ void decrease_tree_size(struct tree_t * T) {
 }
 
 void set_root(struct tree_t * T, struct tree_node_t * newRoot) {
-	// A FAIRE
+	T->root = newRoot;
 }
 
 /**
