@@ -93,7 +93,16 @@ void set_bfactor(struct tree_node_t * node, int newBFactor) {
 struct tree_t * new_tree(int balanced, int (*preceed)(const void *, const void *),
 							void (*viewKey)(const void *), void (*viewData)(const void *),
 							void (*freeKey)(void *), void (*freeData)(void *)) {
-	// A FAIRE
+	struct tree_t * newTree = malloc(sizeof(struct tree_t));
+	newTree->root = NULL;
+	newTree->numelm = 0;
+	newTree->balanced = balanced;
+	newTree->preceed = preceed;
+	newTree->viewKey = viewKey;
+	newTree->viewData = viewData;
+	newTree->freeKey = freeKey;
+	newTree->freeData = freeData;
+	return newTree;
 }
 
 int tree_is_empty(struct tree_t * T) {
@@ -104,7 +113,7 @@ int tree_is_empty(struct tree_t * T) {
 }
 
 int tree_is_balanced(struct tree_t * T) {
-	// A FAIRE
+	return T->balanced;
 }
 
 int get_tree_size(const struct tree_t * T) {
