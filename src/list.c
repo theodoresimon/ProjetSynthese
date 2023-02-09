@@ -197,5 +197,20 @@ void * list_remove_last(struct list_t * L) {
 
 void * list_remove_node(struct list_t * L, struct list_node_t * node) {
 	assert(get_list_head(L) && get_list_tail(L));
-	
+	if (node == get_list_head(L)) {
+		return list_remove_first(L);
+	}
+	else {
+		if (node == get_list_tail(L)) {
+			return list_remove_last(L);
+		}
+		else {
+			set_successor(get_predecessor(node), get_successor(node));
+			set_predecessor(get_successor(node), get_predecessor(node));
+			decrease_list_size(L);
+			void * data = get_list_node_data(node);
+			free(node);
+			return data;
+		}
+	}
 }
