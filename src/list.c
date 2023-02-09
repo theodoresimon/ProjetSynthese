@@ -186,7 +186,13 @@ void * list_remove_first(struct list_t * L) {
 
 void * list_remove_last(struct list_t * L) {
 	assert(get_list_head(L));
-	// A FAIRE
+	struct list_node_t *temp = get_list_tail(L);
+	set_tail(L, get_predecessor(L->tail));
+	set_successor(get_list_tail(L), NULL);
+	decrease_list_size(L);
+	void* data = get_list_node_data(temp);
+	free(temp);
+	return data;
 }
 
 void * list_remove_node(struct list_t * L, struct list_node_t * node) {
