@@ -175,7 +175,13 @@ void list_insert_after(struct list_t * L, void * data, struct list_node_t * ptre
 
 void * list_remove_first(struct list_t * L) {
 	assert(get_list_head(L));
-	// A FAIRE
+	struct list_node_t * temp = get_list_head(L);
+	set_head(L, get_successor(get_list_head(L)));
+	set_predecessor(get_list_head(L), NULL);
+	decrease_list_size(L);
+	void * data = get_list_node_data(temp);
+	free(temp);
+	return data;
 }
 
 void * list_remove_last(struct list_t * L) {
@@ -185,5 +191,5 @@ void * list_remove_last(struct list_t * L) {
 
 void * list_remove_node(struct list_t * L, struct list_node_t * node) {
 	assert(get_list_head(L) && get_list_tail(L));
-	// A FAIRE
+	
 }
