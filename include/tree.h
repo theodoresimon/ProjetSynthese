@@ -130,6 +130,13 @@ void decrease_bfactor(struct tree_node_t * node);
 void set_bfactor(struct tree_node_t * node, int newBFactor);
 
 /**
+ * @brief renvoie la longueur du plus long chemin jusqu'a une feuille 
+ *
+ * @param[in] node
+ */
+int getHeight(struct tree_node_t* node);
+
+/**
  * L'arbre binaire de recherche est une structure contenant :
  * (+) une référence (root) sur sa racine,
  * (+) le nombre d'éléments,

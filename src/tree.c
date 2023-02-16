@@ -86,6 +86,15 @@ void set_bfactor(struct tree_node_t * node, int newBFactor) {
 	node->bfactor = newBFactor;
 }
 
+int getHeight(struct tree_node_t* node) {
+	if (node == NULL) {
+		return -1;
+	}
+	else {
+		return node->height;
+	}
+}
+
 /*********************************************************************
  * tree_t
  *********************************************************************/
@@ -125,11 +134,11 @@ struct tree_node_t * get_root(const struct tree_t * T) {
 }
 
 void increase_tree_size(struct tree_t * T) {
-	// A FAIRE
+	T->numelm++;
 }
 
 void decrease_tree_size(struct tree_t * T) {
-	// A FAIRE
+	T->numelm--;
 }
 
 void set_root(struct tree_t * T, struct tree_node_t * newRoot) {
@@ -148,7 +157,20 @@ void set_root(struct tree_t * T, struct tree_node_t * newRoot) {
  * @param[in] freeData 
  */
 static void delete_tree_node(struct tree_node_t * curr, void (*freeKey)(void *), void (*freeData)(void *)) {
-	// A FAIRE
+	if (curr == NULL) {
+		ShowMessage("probleme avec la fontion void delete_tree_node le noeud courant est à Null", 1);
+	}
+	delete_tree_node(curr->left, freeKey, freeData);
+	delete_tree_node(curr->right, freeKey, freeData);
+
+	if (freeKey != NULL) {
+		freeKey(curr->key);
+	}
+	if (freeData != NULL) {
+		freeData(curr->data);
+	}
+	free(curr);
+}
 }
 
 /**
@@ -159,7 +181,14 @@ static void delete_tree_node(struct tree_node_t * curr, void (*freeKey)(void *),
 void delete_tree(struct tree_t * T, int deleteKey, int deleteData) {
 	assert(deleteKey == 0 || deleteKey == 1);
 	assert(deleteData == 0 || deleteData == 1);
-	// A FAIRE
+	
+	void (*freeKey)(void*) = deleteKey ? T->freeKey : NULL;
+	void (*freeData)(void*) = deleteData ? T->freeData : NULL;
+
+	delete_tree_node(T->root, freeKey, freeData);
+
+	T->root = NULL;
+
 }
 
 /**
@@ -174,15 +203,24 @@ void delete_tree(struct tree_t * T, int deleteKey, int deleteData) {
  */
 static void view_tree_inorder(struct tree_node_t * curr,
 						void (*viewKey)(const void *),
-						void (*viewData)(const void *)) {
-	// A FAIRE
+						void (*viewData)(const void *)) { 
+	if (curr != NULL) {
+		view_tree_inorder(curr->left, viewKey, viewData);
+		if (viewKey != NULL) {
+			viewKey(curr->key);
+		}
+		if (viewData != NULL) {
+			viewData(curr->data);
+		}
+		view_tree_inorder(curr->right, viewKey, viewData);
+	}
 }
 
 /**
  * NB : Utiliser la procédure récursive view_tree_inorder.
  */
 void view_tree(const struct tree_t * T) {
-	// A FAIRE
+	view_tree_inorder(T->root, T->viewKey, T->viewData);
 }
 
 /**
@@ -200,10 +238,57 @@ void view_tree(const struct tree_t * T) {
  * @param[in] y 
  * @return struct tree_node_t* 
  */
-static struct tree_node_t * rotate_left(struct tree_node_t * y) {
+static struct tree_node_t* rotate_left(struct tree_node_t* y) {
 	assert(y);
 	assert(get_right(y));
-	// A FAIRE
+
+	struct tree_node_t* x = get_right(y);
+	struct tree_node_t* b = get_left(x);
+
+	// effectue la rotation à gauche 
+	set_left(x, y);
+	set_right(y, b);
+
+	// mise à jour de la hauteur de x et y 
+	set_height(y, 1 + max(getHeight(get_left(y)), getHeight(get_right(y))));
+	set_height(x, 1 + max(getHeight(get_left(x)), getHeight(get_right(x))));
+
+	// mise à jour du facteur d'equilibre 
+	int bfactor_y = getHeight(get_left(y)) - getHeight(get_right(y));
+	int bfactor_x = getHeight(get_left(x)) - getHeight(get_right(x));
+
+	if (bfactor_y == 2) {
+		if (bfactor_x >= 0) {
+			// Cas 1: droit/droit
+			set_bfactor(y, bfactor_y - 1);
+		}
+		else {
+			// Cas 2: droit/gauche
+			set_bfactor(y, bfactor_y);
+		}
+	}
+	else {
+		// Cas 3: bfactor_y == 1
+		set_bfactor(y, bfactor_y);
+	}
+
+	if (bfactor_x == -2) {
+		if (getHeight(get_left(b)) <= getHeight(get_right(b))) {
+			// Cas 4: gauche/gauche
+			set_bfactor(x, bfactor_x + 1);
+		}
+		else {
+			// Cas 5: gauche/droit
+			set_bfactor(x, bfactor_x);
+		}
+	}
+	else {
+		// Cas 6: bfactor_x == -1
+		set_bfactor(x, bfactor_x);
+	}
+
+	return x;
+
 }
 
 /**
