@@ -515,7 +515,18 @@ struct tree_node_t * tree_find_predecessor(struct tree_node_t * curr, void * key
 
 struct tree_node_t * tree_find_successor(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
 	assert(!tree_node_is_empty(curr));
-	// A FAIRE
+	if (preceed(key, curr->key)){
+		struct tree_node_t * tmp = tree_find_successor(get_left(curr), key, preceed);
+		if (tree_node_is_empty(tmp)){
+			return curr;
+		}else{
+			return tmp;
+		}
+	}else if (preceed(curr->key, key)){
+		return tree_find_successor(get_right(curr), key, preceed);
+	}else{
+		return tree_min(get_right(curr));
+	}
 }
 
 /**
@@ -540,26 +551,66 @@ static struct tree_node_t * remove_tree_node(struct tree_node_t * curr, void * k
 											int (*preceed)(const void *, const void *)) {
 	assert(curr);
 	// PARTIE 1 :
-	// Mettez ici le code de la suppression:
+	// Mettez ici le code de la suppression:	
 	// - exception
 	// - recherche récursif de la clé à supprimer
 	// - mise à jour du facteur d'équilibre
-
-	// A FAIRE
+	// - suppression du nœud
+	if(tree_node_is_empty(curr)){
+		return NULL;
+	}else if(preceed(key, curr->key)){
+		set_left(curr, remove_tree_node(get_left(curr), key, data, balanced, preceed));
+	}else if(preceed(curr->key, key)){
+		set_right(curr, remove_tree_node(get_right(curr), key, data, balanced, preceed));
+	}else{
+		*data = curr->data;
+		if(get_left(curr) == NULL){
+			struct tree_node_t * tmp = get_right(curr);
+			free(curr);
+			return tmp;
+		}else if(get_right(curr) == NULL){
+			struct tree_node_t * tmp = get_left(curr);
+			free(curr);
+			return tmp;
+		}else{
+			struct tree_node_t * tmp = tree_min(get_right(curr));
+			curr->key = tmp->key;
+			curr->data = tmp->data;
+			set_right(curr, remove_tree_node(get_right(curr), tmp->key, data, balanced, preceed));
+		}
+	}
 
 	if (balanced && curr) {
 		// PARTIE 2 :
 		// Gérer ici les rotations
-
-		// A FAIRE
+		if curr->balance == 2{
+			//rotation droite
+			if curr->left->balance == 1{
+				curr = rotate_right(curr);
+			}else if curr->left->balance == -1{
+				//rotation gauche droite
+				curr->left = rotate_left(curr->left);
+				curr = rotate_right(curr);
+			}
+		}else if curr->balance == -2{
+			//rotation gauche
+			if curr->right->balance == -1{
+				curr = rotate_left(curr);
+			}else if curr->right->balance == 1{
+				//rotation droite gauche
+				curr->right = rotate_right(curr->right);
+				curr = rotate_left(curr);
+			}
+		}
 	}
-
-	return ;
+	return curr;
 }
 
 /**
  * NB : Utiliser la fonction récursive remove_tree_node.
  */
 void * tree_remove(struct tree_t * T, void * key) {
-	// A FAIRE
+	void * data = NULL;
+	T->root = remove_tree_node(T->root, key, delete_tree_node(T->root,T->free_key,0), T->balanced, T->preceed);
+	return data;
 }
