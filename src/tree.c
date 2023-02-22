@@ -86,15 +86,6 @@ void set_bfactor(struct tree_node_t * node, int newBFactor) {
 	node->bfactor = newBFactor;
 }
 
-int getHeight(struct tree_node_t* node) {
-	if (node == NULL) {
-		return -1;
-	}
-	else {
-		return node->height;
-	}
-}
-
 /*********************************************************************
  * tree_t
  *********************************************************************/
@@ -171,7 +162,7 @@ static void delete_tree_node(struct tree_node_t * curr, void (*freeKey)(void *),
 	}
 	free(curr);
 }
-}
+
 
 /**
  * NB : Utiliser la procédure récursive delete_tree_node.
@@ -238,58 +229,72 @@ void view_tree(const struct tree_t * T) {
  * @param[in] y 
  * @return struct tree_node_t* 
  */
-static struct tree_node_t* rotate_left(struct tree_node_t* y) {
+static struct tree_node_t *rotate_left(struct tree_node_t *y)
+{
 	assert(y);
-	assert(get_right(y));
+    assert(get_right(y));
 
-	struct tree_node_t* x = get_right(y);
-	struct tree_node_t* b = get_left(x);
+    struct tree_node_t *x = get_right(y);
+    struct tree_node_t *T2 = get_left(x);
 
-	// effectue la rotation à gauche 
-	set_left(x, y);
-	set_right(y, b);
+    set_right(y, T2);
+    set_left(x, y);
 
-	// mise à jour de la hauteur de x et y 
-	set_height(y, 1 + max(getHeight(get_left(y)), getHeight(get_right(y))));
-	set_height(x, 1 + max(getHeight(get_left(x)), getHeight(get_right(x))));
+    if (y->bfactor == -2 && x->bfactor == -1)
+    {
+        y->bfactor = 0;
+        x->bfactor = 0;
+    }
+    else if (y->bfactor == -2 && x->bfactor == 0)
+    {
+        y->bfactor = -1;
+        x->bfactor = 1;
+    }
+    else if (y->bfactor == -1 && x->bfactor == 1)
+    {
+        y->bfactor = -2;
+        x->bfactor = -1;
+        if (get_bfactor(y) == -2)
+        {
+            struct tree_node_t *z = get_left(y);
+            set_left(y, get_right(z));
+            set_right(z, y);
+            set_left(x, z);
+        }
+    }
+    else if (y->bfactor == -1 && x->bfactor == -1)
+    {
+        y->bfactor = 0;
+        x->bfactor = 0;
+    }
+    else if (y->bfactor == -1 && x->bfactor == 0)
+    {
+        y->bfactor = -2;
+        x->bfactor = -2;
+        if (get_bfactor(y) == -2)
+        {
+            struct tree_node_t *z = get_left(y);
+            set_left(y, get_right(z));
+            set_right(z, y);
+            set_left(x, z);
+        }
+        if (get_bfactor(x) == -2)
+        {
+            struct tree_node_t *z1 = get_left(x);
+            set_left(x, get_right(z1));
+            set_right(z1, x);
+            set_right(y, z1);
+        }
+    }
+    else if (y->bfactor == -2 && x->bfactor == -2)
+    {
+        y->bfactor = -1;
+        x->bfactor = 0;
+    }
 
-	// mise à jour du facteur d'equilibre 
-	int bfactor_y = getHeight(get_left(y)) - getHeight(get_right(y));
-	int bfactor_x = getHeight(get_left(x)) - getHeight(get_right(x));
-
-	if (bfactor_y == 2) {
-		if (bfactor_x >= 0) {
-			// Cas 1: droit/droit
-			set_bfactor(y, bfactor_y - 1);
-		}
-		else {
-			// Cas 2: droit/gauche
-			set_bfactor(y, bfactor_y);
-		}
-	}
-	else {
-		// Cas 3: bfactor_y == 1
-		set_bfactor(y, bfactor_y);
-	}
-
-	if (bfactor_x == -2) {
-		if (getHeight(get_left(b)) <= getHeight(get_right(b))) {
-			// Cas 4: gauche/gauche
-			set_bfactor(x, bfactor_x + 1);
-		}
-		else {
-			// Cas 5: gauche/droit
-			set_bfactor(x, bfactor_x);
-		}
-	}
-	else {
-		// Cas 6: bfactor_x == -1
-		set_bfactor(x, bfactor_x);
-	}
-
-	return x;
-
+    return x;
 }
+	
 
 /**
  * @brief
@@ -309,8 +314,66 @@ static struct tree_node_t* rotate_left(struct tree_node_t* y) {
 static struct tree_node_t * rotate_right(struct tree_node_t * x) {
 	assert(x);
 	assert(get_left(x));
-	// A FAIRE
-}
+	
+	struct tree_node_t *y = get_left(x);
+	struct tree_node_t *T2 = get_right(y);
+	
+	set_left(x, T2);
+	set_right(y, x);
+
+	if(x->bfactor == 2 && y->bfactor == 1)
+	{
+		x->bfactor = 0;
+		y->bfactor = 0;
+	}
+	else if(x->bfactor == 2 && y->bfactor == 0)
+	{
+		x->bfactor = 1;
+		y->bfactor = -1;
+	}
+	else if(x->bfactor == 1 && y->bfactor == 1)
+	{
+		x->bfactor = 0;
+		y->bfactor = 0;
+	}
+	else if(x->bfactor == 1 && y->bfactor == -1)
+	{
+		x->bfactor = 2;
+		y->bfactor = 1;
+		if(get_bfactor(x) == 2)
+		{
+			struct tree_node_t *z = get_right(x);
+			set_right(x, get_left(z));
+			set_left(z, x);
+			set_right(y, z);
+		}
+	}
+	else if(x->bfactor == 1 && y->bfactor == 0)
+	{
+		x->bfactor = 2;
+		y->bfactor = 2;
+		if(get_bfactor(x) == 2)
+		{
+			struct tree_node_t *z = get_right(x);
+			set_right(x, get_left(z));
+			set_left(z, x);
+			set_right(y, z);
+		}
+		if(get_bfactor(y) == 2)
+		{
+			struct tree_node_t *z1 = get_right(y);
+			set_right(y, get_left(z1));
+			set_left(z1, y);
+			set_left(x, z1);
+		}
+	}
+	else if(x->bfactor == 2 && y->bfactor == 2)
+	{
+		x->bfactor = 1;
+		y->bfactor = 0;
+	}
+	return y;
+		
 
 /**
  * @brief
@@ -337,9 +400,8 @@ static struct tree_node_t * insert_into_tree_node(struct tree_node_t * curr, voi
 	// - exception
 	// - recherche récursif de la position à insérer
 	// - mise à jour du facteur d'équilibre
-
-	// A FAIRE
-
+	// - insertion du nœud
+	
 	if (balanced) {
 		// PARTIE 2 :
 		// Gérer ici les rotations
