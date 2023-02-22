@@ -1,5 +1,4 @@
 #include "tree.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -401,37 +400,95 @@ static struct tree_node_t * insert_into_tree_node(struct tree_node_t * curr, voi
 	// - recherche récursif de la position à insérer
 	// - mise à jour du facteur d'équilibre
 	// - insertion du nœud
+	if (tree_node_is_empty(curr)){
+		return tree_node_new(key, data);
+	}else if (preceed(key, curr->key)){
+		set_left(curr, insert_into_tree_node(get_left(curr), key, data, balanced, preceed));
+	}else if (preceed(curr->key, key)){
+		set_right(curr, insert_into_tree_node(get_right(curr), key, data, balanced, preceed));
+	}else{
+		return curr;
+	}
 	
 	if (balanced) {
 		// PARTIE 2 :
 		// Gérer ici les rotations
-
-		// A FAIRE
+		
+		// - cas 1
+		if (get_bfactor(curr) == 2 && get_bfactor(get_left(curr)) == 1){
+			curr = rotate_right(curr);
+		// - cas 2
+		}else if (get_bfactor(curr) == 2 && get_bfactor(get_left(curr)) == -1){
+			set_left(curr, rotate_left(get_left(curr)));
+			curr = rotate_right(curr);
+		// - cas 3
+		}else if (get_bfactor(curr) == 2 && get_bfactor(get_left(curr)) == 0){
+			curr = rotate_right(curr);
+		// - cas 4
+		}else if (get_bfactor(curr) == 1 && get_bfactor(get_left(curr)) == 1){
+			curr = rotate_right(curr);
+		// - cas 5
+		}else if (get_bfactor(curr) == 1 && get_bfactor(get_left(curr)) == -1){
+			set_left(curr, rotate_left(get_left(curr)));
+			curr = rotate_right(curr);
+		// - cas 6
+		}else if (get_bfactor(curr) == 1 && get_bfactor(get_left(curr)) == 0){
+			curr = rotate_right(curr);
+		// - cas 7
+		}else if (get_bfactor(curr) == -2 && get_bfactor(get_right(curr)) == -1){
+			curr = rotate_left(curr);
+		// - cas 8
+		}else if (get_bfactor(curr) == -2 && get_bfactor(get_right(curr)) == 1){
+			set_right(curr, rotate_right(get_right(curr)));
+			curr = rotate_left(curr);
+		// - cas 9
+		}else if (get_bfactor(curr) == -2 && get_bfactor(get_right(curr)) == 0){
+			curr = rotate_left(curr);
+		// - cas 10
+		}else if (get_bfactor(curr) == -1 && get_bfactor(get_right(curr)) == -1){
+			curr = rotate_left(curr);
+		// - cas 11
+		}else if (get_bfactor(curr) == -1 && get_bfactor(get_right(curr)) == 1){
+			set_right(curr, rotate_right(get_right(curr)));
+			curr = rotate_left(curr);
+		// - cas 12
+		}else if (get_bfactor(curr) == -1 && get_bfactor(get_right(curr)) == 0){
+			curr = rotate_left(curr);
+		}
 	}
 
-	return ;
+	return curr;
 }
 
 /**
  * NB : Utiliser la fonction récursive insert_into_tree_node.
  */
 void tree_insert(struct tree_t * T, void * key, void * data) {
-	// A FAIRE
+	assert(T != NULL);
+	assert(key != NULL);
+	assert(data != NULL);
+	T->root = insert_into_tree_node(T->root, key, data, T->balanced, T->preceed);
 }
 
 struct tree_node_t * tree_min(struct tree_node_t * curr) {
 	assert(!tree_node_is_empty(curr));
-	// A FAIRE
+	while(!tree_node_is_empty(get_left(curr))){
+		curr = get_left(curr);
+	}
+	return curr;
 }
 
 struct tree_node_t * tree_max(struct tree_node_t * curr) {
 	assert(!tree_node_is_empty(curr));
-	// A FAIRE
+	while(!tree_node_is_empty(get_right(curr))){
+		curr = get_right(curr);
+	}
+	return curr;
 }
 
 struct tree_node_t * tree_find_node(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
 	assert(!tree_node_is_empty(curr));
-	// A FAIRE
+	
 }
 
 struct tree_node_t * tree_find_predecessor(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
