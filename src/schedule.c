@@ -105,7 +105,10 @@ int get_num_machines(const struct schedule_t * S) {
 }
 
 void view_schedule(const struct schedule_t * S) {
-	printf("Schedule: \n");
+	for(int i = 0; i < S->num_machines; i++){
+		printf("Machine n°%d", i);
+		view_list(S->machines[i]);
+	}
 }
 
 void delete_schedule(struct schedule_t * S) {
