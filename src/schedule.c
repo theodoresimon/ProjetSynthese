@@ -22,35 +22,47 @@
  */
 static struct schedule_node_t * new_schedule_node(struct task_t * task, unsigned long bt, unsigned long et) {
 	assert(bt < et);
-	// A FAIRE
+	if (task == NULL) {
+		return NULL;
+	}
+	struct schedule_node_t * snode = (struct schedule_node_t *) malloc(sizeof(struct schedule_node_t));
+	if (snode == NULL) {
+		return NULL;
+	}
+	snode->task = task;
+	snode->begin_time = bt;
+	snode->end_time = et;
+	return snode;
 }
 
 struct task_t * get_schedule_node_task(const struct schedule_node_t * snode) {
-	// A FAIRE
+	return snode->task;
 }
 
 unsigned long get_schedule_node_begin_time(const struct schedule_node_t * snode) {
-	// A FAIRE
+	return snode->begin_time;
 }
 
 unsigned long get_schedule_node_end_time(const struct schedule_node_t * snode) {
-	// A FAIRE
+	return snode->end_time;
 }
 
 void set_schedule_node_begin_time(struct schedule_node_t * snode, unsigned long new_bt) {
-	// A FAIRE
+	snode->begin_time = new_bt;
 }
 
 void set_schedule_node_end_time(struct schedule_node_t * snode, unsigned long new_et) {
-	// A FAIRE
+	snode->end_time = new_et;
 }
 
 void view_schedule_node(const void * snode) {
-	// A FAIRE
+	printf("Task %d \n, begin time %lu\n, end time %lu\n)", get_task_id(get_schedule_node_task(snode)), get_schedule_node_begin_time(snode), get_schedule_node_end_time(snode));
 }
 
 void delete_schedule_node(void * snode) {
-	// A FAIRE
+	if(snode == NULL)
+		
+	free(snode);
 }
 
 /********************************************************************
@@ -59,23 +71,48 @@ void delete_schedule_node(void * snode) {
 
 struct schedule_t * new_schedule(int num_m) {
 	assert(num_m >= 1);
-	// A FAIRE
+	struct schedule_t * S = (struct schedule_t *) malloc(sizeof(struct schedule_t));
+	if (S == NULL) {
+		return NULL;
+	}
+	S->num_machines = num_m;
+	S->machines = (struct list_t **) malloc(num_m * sizeof(struct list_t *));
+	if (S->machines == NULL) {
+		free(S);
+		return NULL;
+	}
+	for (int i = 0; i < num_m; i++) {
+		S->machines[i] = new_list();
+		if (S->machines[i] == NULL) {
+			for (int j = 0; j < i; j++) {
+				delete_list(S->machines[j]);
+			}
+			free(S->machines);
+			free(S);
+			return NULL;
+		}
+	}
+	return S;
 }
 
 struct list_t * get_schedule_of_machine(const struct schedule_t * S, const int machine) {
-	// A FAIRE
+	assert(machine >= 0 && machine < S->num_machines);
+	return S->machines[machine];
 }
 
 int get_num_machines(const struct schedule_t * S) {
-	// A FAIRE
+	return S->num_machines;
 }
 
 void view_schedule(const struct schedule_t * S) {
-	// A FAIRE
+	printf("Schedule: \n");
 }
 
 void delete_schedule(struct schedule_t * S) {
-	// A FAIRE
+	for(int i = 0; i < S->num_machines; i++){
+		delete_list(S->machines[i]);
+	}
+	free(S->machines);
 }
 
 // Pour le format du fichier à créer, regardez dans la présentation du cours.
