@@ -372,7 +372,7 @@ static struct tree_node_t * rotate_right(struct tree_node_t * x) {
 		y->bfactor = 0;
 	}
 	return y;
-		
+}	
 
 /**
  * @brief
@@ -472,28 +472,45 @@ void tree_insert(struct tree_t * T, void * key, void * data) {
 
 struct tree_node_t * tree_min(struct tree_node_t * curr) {
 	assert(!tree_node_is_empty(curr));
-	while(!tree_node_is_empty(get_left(curr))){
-		curr = get_left(curr);
+	if(curr->left != NULL){
+		tree_max(curr->left);
 	}
 	return curr;
 }
 
 struct tree_node_t * tree_max(struct tree_node_t * curr) {
 	assert(!tree_node_is_empty(curr));
-	while(!tree_node_is_empty(get_right(curr))){
-		curr = get_right(curr);
+	if(curr->right != NULL){
+		tree_max(curr->right);
 	}
 	return curr;
 }
 
 struct tree_node_t * tree_find_node(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
 	assert(!tree_node_is_empty(curr));
-	
+	if (preceed(key, curr->key)){
+		return tree_find_node(get_left(curr), key, preceed);
+	}else if (preceed(curr->key, key)){
+		return tree_find_node(get_right(curr), key, preceed);
+	}else{
+		return curr;
+	}
 }
 
 struct tree_node_t * tree_find_predecessor(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
 	assert(!tree_node_is_empty(curr));
-	// A FAIRE
+	if (preceed(key, curr->key)){
+		return tree_find_predecessor(get_left(curr), key, preceed);
+	}else if (preceed(curr->key, key)){
+		struct tree_node_t * tmp = tree_find_predecessor(get_right(curr), key, preceed);
+		if (tree_node_is_empty(tmp)){
+			return curr;
+		}else{
+			return tmp;
+		}
+	}else{
+		return tree_max(get_left(curr));
+	}
 }
 
 struct tree_node_t * tree_find_successor(struct tree_node_t * curr, void * key, int (*preceed)(const void *, const void *)) {
