@@ -60,9 +60,9 @@ void view_schedule_node(const void * snode) {
 }
 
 void delete_schedule_node(void * snode) {
-	if(snode == NULL)
-		
-	free(snode);
+	if(snode != NULL) {
+		free(snode);
+	}
 }
 
 /********************************************************************
@@ -72,26 +72,10 @@ void delete_schedule_node(void * snode) {
 struct schedule_t * new_schedule(int num_m) {
 	assert(num_m >= 1);
 	struct schedule_t * S = (struct schedule_t *) malloc(sizeof(struct schedule_t));
-	if (S == NULL) {
-		return NULL;
+	for(int i = 0; i < num_m; i++){
+		S->machines[i] = new_list(view_schedule_node, delete_schedule_node);
 	}
 	S->num_machines = num_m;
-	S->machines = (struct list_t **) malloc(num_m * sizeof(struct list_t *));
-	if (S->machines == NULL) {
-		free(S);
-		return NULL;
-	}
-	for (int i = 0; i < num_m; i++) {
-		S->machines[i] = new_list();
-		if (S->machines[i] == NULL) {
-			for (int j = 0; j < i; j++) {
-				delete_list(S->machines[j]);
-			}
-			free(S->machines);
-			free(S);
-			return NULL;
-		}
-	}
 	return S;
 }
 
@@ -129,17 +113,49 @@ int find_empty_machine(struct schedule_t * S, unsigned long time) {
 }
 
 int find_machine_to_interrupt(struct schedule_t * S, unsigned long time, unsigned long processing_time) {
-	// A FAIRE
+	assert S == NULL;
+	assert time < 0;
+	assert processing_time < 0;
+	for(int i = 0; i < S->num_machines; i++){
+		struct list_t * list = S->machines[i];
+		struct schedule_node_t * snode = get_list_tail(list);
+		if(snode != NULL){
+			if(snode->end_time <= time - get_schedule_node_begin_time(snode)){
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
 void add_task_to_schedule(struct schedule_t * S, struct task_t * task, int machine, unsigned long bt, unsigned long et) {
-	// A FAIRE
+	assert(S == NULL);
+	assert(task == NULL);
+	assert(machine < 0 || machine >= S->num_machines);
+	assert(bt < et);
+	struct schedule_node_t * snode = new_schedule_node(task, bt, et);
+	if(snode != NULL){
+		add_to_list(S->machines[machine], snode);
+	}
 }
 
 unsigned long preempt_task(struct schedule_t * S, int machine, unsigned long new_et) {
-	// A FAIRE
+	S->machines[machine]->tail->end_time = new_et;
+	return new_et;
 }
 
 unsigned long get_makespan(struct schedule_t * S) {
-	// A FAIRE
+	assert(S == NULL);
+	unsigned long makespan = 0;
+	for(int i = 0; i < S->num_machines; i++){
+		struct list_t * list = S->machines[i];
+		struct schedule_node_t * snode = get_list_tail(list);
+		if(snode != NULL){
+			unsigned long end_time = get_schedule_node_end_time(snode);
+			if(end_time > makespan){
+				makespan = end_time;
+			}
+		}
+	}
+	return makespan;
 }
