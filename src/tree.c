@@ -583,20 +583,20 @@ static struct tree_node_t * remove_tree_node(struct tree_node_t * curr, void * k
 	if (balanced && curr) {
 		// PARTIE 2 :
 		// Gérer ici les rotations
-		if curr->balance == 2{
+		if (curr->bfactor == 2) {
 			//rotation droite
-			if curr->left->balance == 1{
+			if (curr->left->bfactor == 1){
 				curr = rotate_right(curr);
-			}else if curr->left->balance == -1{
+			}else if (curr->left->bfactor == -1) {
 				//rotation gauche droite
 				curr->left = rotate_left(curr->left);
 				curr = rotate_right(curr);
 			}
-		}else if curr->balance == -2{
+		}else if (curr->bfactor == -2) {
 			//rotation gauche
-			if curr->right->balance == -1{
+			if (curr->right->bfactor == -1) {
 				curr = rotate_left(curr);
-			}else if curr->right->balance == 1{
+			}else if (curr->right->bfactor == 1){
 				//rotation droite gauche
 				curr->right = rotate_right(curr->right);
 				curr = rotate_left(curr);
@@ -610,7 +610,8 @@ static struct tree_node_t * remove_tree_node(struct tree_node_t * curr, void * k
  * NB : Utiliser la fonction récursive remove_tree_node.
  */
 void * tree_remove(struct tree_t * T, void * key) {
-	void * data = NULL;
-	T->root = remove_tree_node(T->root, key, delete_tree_node(T->root,T->free_key,0), T->balanced, T->preceed);
-	return data;
+    void * data = NULL;
+    T->root = remove_tree_node(T->root, key, &data, T->balanced, T->preceed);
+    delete_tree_node(T->root, T->freeKey, T->freeData);
+    return data;
 }
