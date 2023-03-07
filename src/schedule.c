@@ -104,23 +104,46 @@ void delete_schedule(struct schedule_t * S) {
 
 // Pour le format du fichier à créer, regardez dans la présentation du cours.
 void save_schedule(struct schedule_t * S, char * filename) {
-	// A FAIRE
+	assert(S == NULL);
+	assert(filename == NULL);
+	FILE * file = fopen(filename, "w");
+	if(file != NULL){
+		for(int i = 0; i < S->num_machines; i++){
+			struct list_t * list = S->machines[i];
+			struct schedule_node_t * snode = get_list_head(list);
+			while(snode != NULL){
+				fprintf(file, "%d %lu %lu\n", get_task_id(get_schedule_node_task(snode)), get_schedule_node_begin_time(snode), get_schedule_node_end_time(snode));
+				snode = get_list_next(list, snode);
+			}
+		}
+		fclose(file);
+	}
 }
 
-
+// Trouver la machine qui est vide
 int find_empty_machine(struct schedule_t * S, unsigned long time) {
-	// A FAIRE
+	assert S == NULL;
+	assert time < 0;
+	for(int i = 0; i < S->num_machines; i++){
+		struct list_t * list = S->machines[i];// récupère la liste de la machine i
+		struct schedule_node_t * snode = get_list_tail(list);// récupère le dernier élément de la liste
+		if(snode == NULL){// si la liste est vide
+			return i;// on retourne la machine i
+		}
+	}
+	return -1;// si aucune machine n'est vide, on retourne -1
 }
 
+// Trouver la machine qui a fini son travail le plus tôt
 int find_machine_to_interrupt(struct schedule_t * S, unsigned long time, unsigned long processing_time) {
 	assert S == NULL;
 	assert time < 0;
 	assert processing_time < 0;
 	for(int i = 0; i < S->num_machines; i++){
-		struct list_t * list = S->machines[i];
-		struct schedule_node_t * snode = get_list_tail(list);
+		struct list_t * list = S->machines[i];// récupère la liste de la machine i
+		struct schedule_node_t * snode = get_list_tail(list);// récupère le dernier élément de la liste
 		if(snode != NULL){
-			if(snode->end_time <= time - get_schedule_node_begin_time(snode)){
+			if(snode->end_time <= time - get_schedule_node_begin_time(snode)){// si la fin du dernier élément de la liste est inférieur ou égale au temps actuel moins le début du dernier élément de la liste
 				return i;
 			}
 		}
