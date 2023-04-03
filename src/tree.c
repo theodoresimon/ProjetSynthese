@@ -2,9 +2,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-
-#include "list.h"
 #include "util.h"
 
 /********************************************************************
@@ -401,7 +398,7 @@ static struct tree_node_t * insert_into_tree_node(struct tree_node_t * curr, voi
 	// - mise à jour du facteur d'équilibre
 	// - insertion du nœud
 	if (tree_node_is_empty(curr)){
-		return tree_node_new(key, data);
+		return new_tree_node(key, data);
 	}else if (preceed(key, curr->key)){
 		set_left(curr, insert_into_tree_node(get_left(curr), key, data, balanced, preceed));
 	}else if (preceed(curr->key, key)){
