@@ -1,5 +1,6 @@
 #include "instance.h"
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,11 +57,11 @@ Instance read_instance(const char * filename) {
 		exit(EXIT_FAILURE);
 	}
 	// Initialise une nouvelle instance 
-	Instance I = new_list(sizeof(struct task_t *), view_task, delete_task());
+	Instance I = new_list(view_task, delete_task);
 	// Lit le fichier ligne par ligne
 	char * line = NULL;// chaine de caractère pour stocker chaque ligne du fichier
 	size_t len = 0;// taille initiale de la chaine de caractère(0 pour que getline alloue la mémoire)
-	ssize_t read;// nombre de caractère lu par la ligne courante
+	int read;// retour de la fonction fgets(), nombre de caractère lu par la ligne courante
 	char *token;// chaine de caractère pour stocker chaque partie de la ligne (id, processing time, release time)
 	char delim= ' ';//Délimiteur
 	while ((read = fgets(&line, &len, file)) != -1) {
@@ -85,21 +86,21 @@ void view_instance(Instance I) {
 	printf("Instance avec %d tache(s) : \n"), get_list_size(I);
 	struct list_node_t * node = I->head;
 	while (node) {
-		i->viewData(node->data);
-		node = node->next;
+		I->viewData(node->data);
+		node = node->successor;
 	}
 }
 
 void delete_instance(Instance I, int deleteData) {
-	assert(i);
+	assert(I);
 	struct list_node_t * node = I->head;
 	while (node) {
-		struct list_node_t * next = node->next;
+		struct list_node_t * next = node->successor;
 		if (deleteData) {
-			i->deleteData(node->data);
+			I->freeData(node->data);
 		}
 		free(node);
 		node = next;
 	}
-	free(i);
+	free(I);
 }
