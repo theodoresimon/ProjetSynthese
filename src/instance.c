@@ -1,6 +1,5 @@
 #include "instance.h"
 
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,8 +14,7 @@
 
 struct task_t * new_task(char * id, unsigned long proctime, unsigned long reltime) {
 	struct task_t * task = (struct task_t *) malloc(sizeof(struct task_t));
-    task->id = (char *) malloc(sizeof(char) * (strlen(id) + 1));
-    strcpy(task->id, id);
+	task->id = id;
 	task->processing_time = proctime;
 	task->release_time = reltime;
 	return task;
@@ -40,9 +38,8 @@ void view_task(const void * task) {
 
 void delete_task(void * task) {
 	assert(task);
-	struct task_t * t = (struct task_t *) task;
-	free(t->id);
-	free(t);
+	free(task->id);
+	free(task);
 }
 
 /********************************************************************
@@ -50,57 +47,54 @@ void delete_task(void * task) {
  ********************************************************************/
 
 Instance read_instance(const char * filename) {
+	assert(filename);//vérifie que le nom du fichier n'est pas null
 	//Ouvre le fichier
-	FILE * file = fopen(filename, "r");
-	if (!file) {
-		fprintf(stderr, "Erreur : Impossible d'ouvrir le fichier %s\n", filename);
-		exit(EXIT_FAILURE);
+	FILE * file = fopen(filename, "r");//ouvre le fichier en lecture
+	if (!file) {//si l'ouverture a échoué
+		ShowMessage("impossible d'ouvrir le fichier",1);
 	}
 	// Initialise une nouvelle instance 
-	Instance I = new_list(view_task, delete_task);
+	Instance I = new_list(sizeof(struct task_t *), view_task, delete_task);
 	// Lit le fichier ligne par ligne
 	char * line = NULL;// chaine de caractère pour stocker chaque ligne du fichier
 	size_t len = 0;// taille initiale de la chaine de caractère(0 pour que getline alloue la mémoire)
-	int read;// retour de la fonction fgets(), nombre de caractère lu par la ligne courante
+	ssize_t read;// nombre de caractère lu par la ligne courante
 	char *token;// chaine de caractère pour stocker chaque partie de la ligne (id, processing time, release time)
-	char delim= ' ';//Délimiteur
-	while ((read = fgets(&line, &len, file)) != -1) {
+	char delim="";//Délimiteur
+	while ((read = getline(&line, &len, file)) != -1) {
 		//découpe la ligne en 3 parties,
-		token=strtok(line,&delim);
-		char *id=token;
-		token=strtok(NULL,&delim);
-		unsigned long processing_time=strtoul(token,NULL,10);
-		token=strtok(NULL,&delim);
-		unsigned long release_time=strtoul(token,NULL,10);
+		token=strtok(line,delim);//id
+		char *id=token;//convertit la chaine de caractère en char *
+		token=strtok(NULL,delim);//processing time
+		unsigned long processing_time=strtoul(token,NULL,10);//convertit la chaine de caractère en unsigned long
+		token=strtok(NULL,delim);//release time
+		unsigned long release_time=strtoul(token,NULL,10);//convertit la chaine de caractère en unsigned long
 		//crée une nouvelle tâche avec ces 3 parties et l'ajoute à l'instance
-		struct task_t * task = new_task(id, processing_time, release_time);
-		add_to_list(I, task);
+		struct task_t * task = new_task(id, processing_time, release_time);//crée une nouvelle tâche
+		add_to_list(I, task);//ajoute la tâche à l'instance
 	}
 	//Libère la mémoire
-	free(line);
-	fclose(file);
-	return I;
+	free(line);//libère la mémoire allouée par getline
+	free(token);//libère la mémoire allouée par strtok
+	fclose(file);//ferme le fichier
+	return I;//retourne l'instance
 }
 
 void view_instance(Instance I) {
-	printf("Instance avec %d tache(s) : \n"), get_list_size(I);
-	struct list_node_t * node = I->head;
-	while (node) {
-		I->viewData(node->data);
-		node = node->successor;
-	}
+	assert(I);//vérifie que l'instance n'est pas null
+	view_list(I);//affiche l'instance
 }
 
 void delete_instance(Instance I, int deleteData) {
-	assert(I);
-	struct list_node_t * node = I->head;
-	while (node) {
-		struct list_node_t * next = node->successor;
-		if (deleteData) {
-			I->freeData(node->data);
+	assert(I);//vérifie que l'instance n'est pas null
+	struct list_node_t * node = I->head;//pointeur sur le premier élément de la liste
+	while (node) {//parcours la liste
+		struct list_node_t * next = node->next;//pointeur sur le prochain élément de la liste
+		if (deleteData){//si deleteData est vrai
+			i->deleteData(node->data);//supprime les données de la tâche
 		}
-		free(node);
-		node = next;
+		free(node);//libère la mémoire allouée pour le noeud
+		node = next;//passe au noeud suivant
 	}
-	free(I);
+	free(I);//libère la mémoire allouée pour l'instance
 }

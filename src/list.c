@@ -14,39 +14,46 @@
 /**
  * @brief
  * Construit et initialise un nouveau nœud d'une liste doublement chaînée.
- * 
+ *
  * @param[in] data Donnée à affecter au nouveau nœud.
  * @return struct list_node_t* Le nouveau nœud créé.
  */
-static struct list_node_t * new_list_node(void * data) {
-	struct list_node_t * newListNode = malloc(sizeof(struct list_node_t));
+static struct list_node_t *new_list_node(void *data)
+{
+	struct list_node_t *newListNode = malloc(sizeof(struct list_node_t));
 	newListNode->data = data;
 	newListNode->successor = NULL;
 	newListNode->predecessor = NULL;
 	return newListNode;
 }
 
-void * get_list_node_data(const struct list_node_t * node) {
+void *get_list_node_data(const struct list_node_t *node)
+{
 	return node->data;
 }
 
-struct list_node_t * get_successor(const struct list_node_t* node) {
+struct list_node_t *get_successor(const struct list_node_t *node)
+{
 	return node->successor;
 }
 
-struct list_node_t * get_predecessor(const struct list_node_t * node) {
+struct list_node_t *get_predecessor(const struct list_node_t *node)
+{
 	return node->predecessor;
 }
 
-void set_list_node_data(struct list_node_t * node, void * newData) {
+void set_list_node_data(struct list_node_t *node, void *newData)
+{
 	node->data = newData;
 }
 
-void set_successor(struct list_node_t * node, struct list_node_t * newSucc) {
+void set_successor(struct list_node_t *node, struct list_node_t *newSucc)
+{
 	node->successor = newSucc;
 }
 
-void set_predecessor(struct list_node_t * node, struct list_node_t * newPred) {
+void set_predecessor(struct list_node_t *node, struct list_node_t *newPred)
+{
 	node->predecessor = newPred;
 }
 
@@ -54,8 +61,9 @@ void set_predecessor(struct list_node_t * node, struct list_node_t * newPred) {
  * list_t
  ********************************************************************/
 
-struct list_t * new_list(void (*viewData)(const void*), void (*freeData)(void*)) {
-	struct list_t * newList = malloc(sizeof(struct list_t));
+struct list_t *new_list(void (*viewData)(const void *), void (*freeData)(void *))
+{
+	struct list_t *newList = malloc(sizeof(struct list_t));
 	newList->head = NULL;
 	newList->tail = NULL;
 	newList->numelm = 0;
@@ -64,176 +72,199 @@ struct list_t * new_list(void (*viewData)(const void*), void (*freeData)(void*))
 	return newList;
 }
 
-int list_is_empty(struct list_t * L) {
-	if (L->head == NULL){
-		return 1;
-	}
-	else{
-		return 0;
-	}
+int list_is_empty(struct list_t *L)
+{
+	return (L->numelm == 0);
 }
 
-int get_list_size(const struct list_t * L) {
+int get_list_size(const struct list_t *L)
+{
 	return L->numelm;
 }
 
-struct list_node_t * get_list_head(const struct list_t * L) {
+struct list_node_t *get_list_head(const struct list_t *L)
+{
 	return L->head;
 }
 
-struct list_node_t * get_list_tail(const struct list_t * L) {
+struct list_node_t *get_list_tail(const struct list_t *L)
+{
 	return L->tail;
 }
 
-void increase_list_size(struct list_t * L) {
-	L->numelm ++;
-}
-
-void decrease_list_size(struct list_t * L) {
-	if (list_is_empty(L) == 1) {
-		ShowMessage("src.list.c:decrease_list_size : La liste est vide, inutile de la decrementer !", 0);
-	}
-	L->numelm --;
-}
-
-void set_list_size(struct list_t * L, int newSize) {
-	L->numelm = newSize;
-}
-
-void set_head(struct list_t * L, struct list_node_t * newHead) {
-	if (list_is_empty(L) == 1){
-		// On ne fait rien car la liste est vide et donc la tête est NULL
-		// Pour pouvoir mettre la tête à newHead, il faut creer un noeud puis l'inserer dans la liste avec list_insert_first, list_insert_last ou list_insert_after
-		ShowMessage("src.list.c:set_head : La liste est vide !", 0);
-	} 
-	else {
-		L->head = newHead;
-	}
-	
-}
-
-void set_tail(struct list_t * L, struct list_node_t * newTail) {
-	if (list_is_empty(L) == 1){
-		// Meme raisonnement que pour set_head
-		ShowMessage("src.list.c:set_tail : La liste est vide !", 0);
-	} 
-	else {
-		L->tail = newTail;
-	}
-}
-
-void delete_list(struct list_t * L, int deleteData) {
-	if (list_is_empty(L) == 1){
-		ShowMessage("src.list.c:delete_list : La liste est déjà vide !", 0);
-	}
-	else {
-		if (deleteData == 1){
-			while (L->head != NULL){
-				struct list_node_t * temp = L->head;
-				L->head = L->head->successor;
-				L->freeData(temp->data);
-				free(temp);
-			}
-		}
-		else {
-			if (deleteData == 0){
-				while (L->head != NULL){
-					struct list_node_t * temp = L->head;
-					L->head = L->head->successor;
-					free(temp);
-					}
-				}
-			else {
-				ShowMessage("Erreur src.list.c:delete_list , deleteData doit être égal à 0 ou 1  ", 1);
-			}
-			
-		}
-	}
-}
-
-void view_list(const struct list_t * L) {
-	for(struct list_node_t *temp = L->head; temp != NULL ; temp = temp->successor){
-		L->viewData(temp->data);
-	}
-}
-
-void list_insert_first(struct list_t * L, void * data) {
-	struct list_node_t * temp = new_list_node(data);
-
-	if(list_is_empty(L)){
-		set_head(L, temp);
-		set_tail(L, temp);
-	}else{
-		set_successor(temp, get_list_head(L));
-		set_head(L, temp);
-	}
+void increase_list_size(struct list_t *L)
+{
 	L->numelm++;
 }
 
-void list_insert_last(struct list_t * L, void * data) {
-	struct list_node_t * newListNode = new_list_node(data);
-	if (list_is_empty(L)) {
+void decrease_list_size(struct list_t *L)
+{
+	if (list_is_empty(L))
+	{
+		ShowMessage("src.list.c:decrease_list_size : La liste est vide, inutile de la decrementer !",1);
+	}
+	L->numelm--;
+}
+
+void set_list_size(struct list_t *L, int newSize)
+{
+	L->numelm = newSize;
+}
+
+void set_head(struct list_t *L, struct list_node_t *newHead)
+{
+	if (list_is_empty(L))//illogique de donner une liste vide mais on sait jamais 
+	{
+		// Si la liste est vide, on ne peut pas modifier la tête de la liste
+		// car la tête est NULL, et on ne peut pas modifier un pointeur NULL
+		// On affiche donc un message d'erreur et on quitte la fonction
+		ShowMessage("src.list.c:set_head : La liste est vide !", 1);
+	}
+	else
+	{
+		L->head = newHead;
+	}
+}
+
+void set_tail(struct list_t *L, struct list_node_t *newTail)
+{
+	if (list_is_empty(L))
+	{
+		// Meme raisonnement que pour set_head
+		ShowMessage("src.list.c:set_tail : La liste est vide !",1);
+	}
+		L->tail = newTail;
+}
+
+void delete_list(struct list_t *L, int deleteData)
+{
+	struct list_node_t* current = L->head;
+	struct list_node_t* sucessor_node;//permettra de prendre les noeuds suivants de current et de les supprimer les uns après les autres 
+	if (list_is_empty(L))
+	{
+		ShowMessage("src.list.c:delete_list : La liste est déjà vide !", 1);
+	}
+	else
+		{
+			while(current != NULL){//permet de parcourir les noeuds tant que la liste n'est pas vide
+				sucessor_node = get_successor(current) //on se sert de ce noeud pour ne pas perdre le successeur de la tête de liste, on libère donc la liste de la tête vers la queue de la liste 
+				if ((deleteData == 1) && (L->freeData != NULL)){//comme descrit dans la définition de la fonction
+					L->freeData(current->data);//appelle de la fonction freedata pour libérer la data du noeud courrent
+				}
+				free(current);// libère le noeud courant
+				current = sucessor_node; //current étant libérer on le remplace par son successeur stocké au préalable
+			}
+			 
+
+	}
+	free(L);//quand tous les noeuds de la liste sont libérer, on libère la liste
+}
+
+void view_list(const struct list_t *L)
+{
+	for (struct list_node_t *temp = get_list_head(L); temp != NULL; temp = get_successor(temp))//parcours toute la liste pour afficher la data de chaque noeuds jusqu'a ce que temp prenne la valeur NULL(quand il n'y a plus de successeur) 
+	{
+		L->viewData(temp->data);// appelle de la fonction viewData pour afficher la data du noeud temporaire
+	}
+}
+
+void list_insert_first(struct list_t *L, void *data)
+{
+	struct list_node_t *newListNode = new_list_node(data);
+	if (list_is_empty(L))
+	{	// si la liste est vide alors la tête et la queue de la liste sont les même 
 		set_head(L, newListNode);
-		L->tail = newListNode;
+		set_tail(L, newListNode);
 	}
-	else {
-		L->tail->successor = newListNode;
-		newListNode->predecessor = L->tail;
-		L->tail = newListNode;
+	else 
+	{
+		newListNode->successor = L->head;//sinon la tête de liste actuel  deviens le successor du nouveau noeuds
+		L->head->predecessor = newListNode;//puis on intègre au predecesseur de la tête de liste actuel le noeud que l'on veux intégré à la liste(newListNode)
+		set_head(L, newListNode);// et enfin on intère le noeud à la tête de la Liste
 	}
-	increase_list_size(L);
+	increase_list_size(L);//on oublie pas d'incrémenté la liste étant donné que l'on rajoute un noeud
 }
 
-void list_insert_after(struct list_t * L, void * data, struct list_node_t * ptrelm) {
-	increase_list_size(L);
-	if (list_is_empty(L)) {
-		list_insert_first(L, data);
+void list_insert_last(struct list_t *L, void *data)
+{
+	struct list_node_t *newListNode = new_list_node(data);
+	if (list_is_empty(L))
+	{	// si la liste est vide alors la tête et la queue de la liste sont les même
+		set_head(L, newListNode);
+		set_tail(L, newListNode);
 	}
-	else {
-		struct list_node_t * newListNode = new_list_node(data);
-		newListNode->successor = ptrelm->successor;
-		ptrelm->successor = newListNode;
+	else
+	{
+		L->tail->successor = newListNode;//sinon la queue de liste actuel reçoit comme successor le nouveau noeuds
+		newListNode->predecessor = L->tail;//puis on intègre au predecesseur du nouveau noeud, la queue de la liste
+		L->tail = newListNode;// et enfin on intère le noeud à la queue de la Liste et donc deviens le dernier élément de la liste 
 	}
+	increase_list_size(L);//on oublie pas d'incrémenté la liste étant donné que l'on rajoute un noeud
 }
 
-void * list_remove_first(struct list_t * L) {
-	assert(get_list_head(L));
-	struct list_node_t * temp = get_list_head(L);
-	set_head(L, get_successor(get_list_head(L)));
-	set_predecessor(get_list_head(L), NULL);
-	decrease_list_size(L);
-	void * data = get_list_node_data(temp);
-	free(temp);
+void list_insert_after(struct list_t *L, void *data, struct list_node_t *ptrelm)
+{
+	struct list_node_t *newListNode = new_list_node(data);//on crée le noeud avec la data que l'on veux intégré après le noeud ptrelm
+	newListNode->predecessor = ptrelm;//le prédecesseur du nouveau noeud est le noeud ptrelm
+	ptrelm->successor->predecessor = newListNode;//avant de modifier le successeur de ptrelm, il faut que le noeud suivant ptrelm reçoivent notre nouveau noeuds en prédeccesseur  
+	newListNode->successor = ptrelm->successor;// le successeur du nouveau noeud sera donc le successeur du noeud ptrelm étant donné que l'on veux le mettre après ptrelm 
+	ptrelm->successor = newListNode;//on modifie le sucesseur de ptrelm pour que ce soit le nouveaunoeud que l'on souhaite ajouté   
+	increase_list_size(L);// on rajoute un element donc on incrémente la liste 
+}
+
+void *list_remove_first(struct list_t *L)
+{
+	assert(get_list_head(L));//on vérifie que la liste n'est pas vide 
+	struct list_node_t *temp = get_list_head(L); //on crée un noeud temporaire pour recevoir la tête de liste
+	if(get_successor(L->head->successor) == NULL)//si le successeur de la tête est null alors la liste n'a qu'un élément et on ne pourra modifier la tête de L avec son successeur étant donné qu'il n'y en a pas
+	{
+		L->head = NULL;//si on supprime le seul élément de la liste alors la queue et la tête pointe sur null
+		L->tail = NULL;
+	}else{ //sinon la liste à plus d'1 élément  
+		set_head(L, get_successor(temp));//la tête de la liste recoit le successeur de sa tête actuel comme nouvelle tête 
+		set_predecessor(get_list_head(L), NULL);//le prédeccesseur de la nouvelle tête ne doit donc plus pointé sur le noeud que l'on veux supprimé et donc pointé sur null
+	}
+	decrease_list_size(L);//étant donnée que l'on retire un élément il faut décrémenté numelm
+	void *data = get_list_node_data(temp);//on stocke la data dans data pour ne pas perdre la donnée
+	free(temp);//on libère l'ancienne tête de L en ayant au préalable supprimé les liens où il y avait une relation avec la Liste ou son successeur
 	return data;
 }
 
-void * list_remove_last(struct list_t * L) {
-	assert(get_list_head(L));
-	struct list_node_t *temp = get_list_tail(L);
-	set_tail(L, get_predecessor(L->tail));
-	set_successor(get_list_tail(L), NULL);
-	decrease_list_size(L);
-	void* data = get_list_node_data(temp);
-	free(temp);
+void *list_remove_last(struct list_t *L)// quasi similaire à remove_first
+{
+	assert(get_list_head(L));//on vérifie que la liste n'est pas vide 
+	struct list_node_t *temp = get_list_tail(L); //on crée un noeud temporaire pour recevoir la queue de la liste
+	if(get_successor(L->head->successor) == NULL)//si le successeur de la tête est null alors la liste n'a qu'un élément et on ne pourra pas modifier la queue de L avec son prédeccesseur étant donné qu'il n'y en a pas
+	{
+		L->head = NULL;//si on supprime le seul élément de la liste alors la queue et la tête pointe sur null
+		L->tail = NULL;
+	}else{ //sinon la liste à plus d'1 élément
+		set_tail(L, get_predecessor(temp));//la queue de la liste recoit le predeccesseur de sa queue actuel comme nouvelle queue 
+		set_successor(temp, NULL);//le successeur de la nouvelle queue ne doit donc plus pointé sur le noeud que l'on veux supprimé et donc pointé sur null
+	}
+	decrease_list_size(L);//étant donnée que l'on retire un élément il faut décrémenté numelm
+	void *data = get_list_node_data(temp);//on stocke la data dans data pour ne pas perdre la donnée
+	free(temp);//on libère l'ancienne tête de L en ayant au préalable supprimé les liens où il y avait une relation avec la Liste ou son successeur
 	return data;
 }
 
-void * list_remove_node(struct list_t * L, struct list_node_t * node) {
-	assert(get_list_head(L) && get_list_tail(L));
-	if (node == get_list_head(L)) {
-		return list_remove_first(L);
+void *list_remove_node(struct list_t *L, struct list_node_t *node)
+{
+	assert(get_list_head(L) && get_list_tail(L) && (get_list_head(L) != get_list_tail(L)) );// on vérifie que la liste à bien au moins 2 éléments sinon inutile d'appeler remove_node
+	void *data = get_list_node_data(node);//on stocke la data dans data pour ne pas perdre la donnée  
+	if(node->predecessor == NULL)//si le predeccesseur du noeud node est null alors node est la tête de la liste donc on doit faire les modifications adéquates
+	{
+		L->head = node->successor;// le successeur de node deviens donc la nouvelle tête 
+		node->successor->predecessor = NULL;//le pointeur predeccessor du  successeur du noeud node doit donc pointé sur NULL étant donné que c'est la nouvelle tête de liste 
+	}else if(node->successor == NULL){//si le successeur du noeud node est null alors node est la queue de la liste donc on doit faire les modifications adéquates
+		L->tail = node->predecessor;//la nouvelle queue de liste devient donc le predeccesseur de node 
+		node->predecessor->successor = NULL;//le pointeur successor du predeccesseur de node doit donc pointé que NULL
+	}else //si ce n'est ni la tête de liste ni la queue de liste alors quelque soit sa place les modifications resteront les même    
+	{
+		node->predecessor->successor = node->successor;//le pointeur successeur du noeud précédant le noeud node pointe désormais sur le sucesseur du noeud node 
+		node->successor->predecessor = node->predecessor;//le pointeur predecceur du noeud suivant node pointe désormais sur le predeccesseur du noeud node
 	}
-	else {
-		if (node == get_list_tail(L)) {
-			return list_remove_last(L);
-		}
-		else {
-			set_successor(get_predecessor(node), get_successor(node));
-			set_predecessor(get_successor(node), get_predecessor(node));
-			decrease_list_size(L);
-			void * data = get_list_node_data(node);
-			free(node);
-			return data;
-		}
-	}
+	decrease_list_size(L);//on supprime le noeud node de la liste donc il faut decrementer la liste
+	free(node);//on libère le noeuds que l'on souhaite supprimé 
+	return data;
 }
