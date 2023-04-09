@@ -16,4 +16,9 @@
  */
 struct schedule_t * create_schedule(Instance I, int num_m, int preemption, int balanced_tree);
 
+struct schedule_t SPT(int num_m, struct tree_t *ready_tasks, struct tree_t *E);
+
+void SRPT(int num_m, struct tree_t* ready_tasks, struct tree_t* E); 
+
+
 #endif // _ALGO_H_

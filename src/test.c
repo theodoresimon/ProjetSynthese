@@ -90,7 +90,7 @@ void test_arbre_non_equilibre_rotate_left=(){
 	racine->left->left = new_tree_node(3);
 	racine->left->right = new_tree_node(2);
 	racine->right = new_tree_node(6);
-	racine = rotate_left(root->left);//rotation sur le noeud 4
+	racine = rotate_left(racine->left);//rotation sur le noeud 4
 	view_tree(racine, 0);
 	//Vérification de l'arbre résultant 
 	// Le résultat attendu est :
@@ -156,7 +156,7 @@ void test_arbre_non_equilibre_rotate_right(){
 	racine->left = new_tree_node(4);
 	racine->left->right = new_tree_node(2);
 	racine->right = new_tree_node(6);
-	racine = rotate_right(racine->left);//rotation sur le noeud 6
+	racine = rotate_right(racine->left);//rotation sur le noeud 5
 	view_tree(racine, 0);
 	//Vérification de l'arbre résultant 
 	// Le résultat attendu est :

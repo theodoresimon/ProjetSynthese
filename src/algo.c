@@ -284,7 +284,7 @@ void SRPT(int num_m, struct tree_t* ready_tasks, struct tree_t* E) {
     struct task_t* ready_task2;
     void* key = NULL;
     void* data = NULL;
-    int i, j;
+    int i,j;
 
     // on parcourt les tâches pour extraire la clef et les données
     while (!tree_is_empty(ready_tasks)) {
@@ -306,55 +306,50 @@ void SRPT(int num_m, struct tree_t* ready_tasks, struct tree_t* E) {
         i = find_empty_machine(S, ready_task1->released_time);
         if (i >= 0) { // si une machine est libre
             add_task_to_schedule(S, ready_task1, i, ready_task1->released_time, ready_task1->released_time + ready_task1->processing_time); // on ajoute la tâche à la machine
-            tree_insert(E, new_event_key(0, ready_task1->released_time + ready_task1->processing_time, 1, ready_task1->id, i), ready_task1); // on insère l'événement de fin de tâche dans l'arbre des événements
+            tree_insert(E, new_event_key(1, ready_task1->released_time + ready_task1->processing_time, 1, ready_task1->id, i), ready_task1); // on insère l'événement de fin de tâche dans l'arbre des événements
         } else { // sinon, on doit ajouter la tâche dans la file d'attente des tâches prêtes
             tree_insert(ready_tasks, new_ready_task_key(ready_task1->processing_time, ready_task1->id), ready_task1); // on insère la tâche dans l'arbre des tâches prêtes
         }
     }
 
     // on reproduit le pattern décrit dans le diaporama
-while (!tree_is_empty(E)) {
-    struct tree_node_t* minNode = tree_min(get_root(E));
-    if (key == NULL) {
+    while (!tree_is_empty(E)) {
+        struct tree_node_t* minNode = tree_min(get_root(E));
         key = minNode->key;
-        if(data != NULL){
-            data = minNode->data;
-        }
+        data = minNode->data;
         tree_remove(E, get_tree_node_key(minNode));
 
-        event = (struct event_key_t *) key;
+        event = (struct event_key_t*)key;
         i = event->machine;
         j = event->task_id;
 
-        if(event->event_type == 0){
-            if(get_task(ready_tasks, j) != NULL){
-                ready_task2 = get_task(ready_tasks, j);
-                int machine_index = find_empty_machine(S, event->event_time);
-                if (machine_index != -1) {
-                    add_task_to_schedule(S, ready_task2, machine_index, event->event_time, event->event_time + ready_task2->processing_time);
-                    tree_insert(E, new_event_key(1, event->event_time + ready_task2->processing_time, 1, j, machine_index), ready_task2);
-                } else {
-                    tree_insert(ready_tasks, new_ready_task_key(get_task(released_tasks, j)->processing_time, j), get_task(released_tasks, j));
-                }
+        if (event->event_type == 0) {
+        if (get_task(ready_tasks, event->task_id) != NULL) {
+            ready_task2 = get_task(ready_tasks, event->task_id);
+            int machine_index = find_empty_machine(S, event->event_time);
+            if (machine_index != -1) {
+                add_task_to_schedule(S, ready_task2, machine_index, event->event_time, event->event_time + ready_task2->processing_time);
+                tree_insert(E, new_event_key(1, event->event_time + ready_task2->processing_time, 1, event->task_id, machine_index), ready_task2);
             } else {
-                tree_insert(ready_tasks, new_ready_task_key(get_task(released_tasks, j)->processing_time, j), get_task(released_tasks, j));
+                tree_insert(ready_tasks, new_ready_task_key(ready_task2->processing_time, event->task_id), ready_task2);
             }
-        } else if(event->event_type == 1){
-            int machine_index = find_empty_machine(S, event->release_time);
-            if(machine_index != -1){
-                if(!tree_is_empty(ready_tasks)){
-                    ready_task2 = tree_min(ready_tasks);
-                    add_task_to_schedule(S, ready_task2, machine_index, event->start_time, event->start_time + ready_task2->processing_time);
-                    tree_insert(E, new_event_key(1, event->start_time + ready_task2->processing_time, 1, ready_task2->id, machine_index), ready_task2);
-                    tree_remove(ready_tasks, get_tree_node_key(tree_min(get_root(ready_tasks))));
-                }
+        } else {
+            printf("Error: Task %d not found in ready tasks\n", event->task_id);
+        }
+    } else if(event->event_type == 1){
+        int machine_index = find_empty_machine(S, event->release_time);
+        if(machine_index != -1){
+            if(!tree_is_empty(ready_tasks)){
+                ready_task2 = tree_min(ready_tasks);
+                add_task_to_schedule(S, ready_task2, machine_index, event->start_time, event->start_time + ready_task2->processing_time);
+                tree_insert(E, new_event_key(1, event->start_time + ready_task2->processing_time, 1, ready_task2->id, machine_index), ready_task2);
+                tree_remove(ready_tasks, get_tree_node_key(tree_min(get_root(ready_tasks))));
             }
         }
     }
-
-}
+	}
     delete_event_key(event);
-	return S;
+    view_schedule(S);
 }
 
 

@@ -150,42 +150,41 @@ void save_schedule(struct schedule_t * S, char * filename) {
 
 // Trouver la machine qui est vide
 int find_empty_machine(struct schedule_t * S, unsigned long time) {
-	assert (S == NULL);//on vérifie que l'ordonnancement n'est pas null
-	assert (time > 0);//on vérifie que l'ordonnancement et le temps sont valides
-	for(int i = 0; i < S->num_machines; i++){// on parcourt toutes les machines
-		struct list_t * list = S->machines[i];// récupère la liste de la machine i
-		struct schedule_node_t * snode = get_list_tail(list);// récupère le dernier élément de la liste
-		if(snode == NULL){// si la liste est vide
-			return i;// on retourne la machine i
-		}
-	}
-	return -1;// si aucune machine n'est vide, on retourne -1
+    assert(S != NULL);
+    assert(time >= 0);
+
+    for(int i = 0; i < S->num_machines; i++) {
+        struct list_t * list = S->machines[i];
+        struct schedule_node_t * snode = get_list_tail(list);
+
+        if(snode == NULL || snode->end_time <= time) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
-// Trouver la machine qui a fini son travail le plus tôt
 int find_machine_to_interrupt(struct schedule_t * S, unsigned long time, unsigned long processing_time) {
-	assert(S == NULL);//on vérifie que l'ordonnancement n'est pas nul
-	assert(time > 0);//on vérifie que l'ordonnancement et le temps sont valides
-	assert(processing_time > 0);//on vérifie que l'ordonnancement et le temps de traitement sont valides
-	int stop = -1;//on initialise la variable stop à -1
-	for(int i = 0; i < S->num_machines; i++){// on parcourt toutes les machines
-		struct list_t * list = S->schedule[i];//on récupère la liste de la machine i
-		if(list != NULL){// si la liste n'est pas vide
-			struct list_node_t * node = get_list_tail(list);//on récupère le dernier élément de la liste
-			struct task_t * task = get_list_node_data(node);//on récupère la tâche de la machine i
-			if(get_task_duration(task) + get_schedule_node_begin_time(node) <= time){//si la durée de la tâche + le temps de début est inférieur au temps
-				if(stop == -1){//si stop est égal à -1
-					stop = i;//on affecte à stop la machine i
+	assert(S != NULL && time > 0 && processing_time > 0);
+
+	int stop = -1;
+	for(int i = 0; i < S->num_machines; i++){
+		struct list_t * list = S->machines[i];
+		if(list != NULL && !is_list_empty(list)){ // Vérifier que la liste n'est pas vide
+			struct list_node_t * node = get_list_tail(list);
+			struct task_t * task = get_list_node_data(node);
+			if(get_task_duration(task) + get_schedule_node_begin_time(node) <= time){
+				if(stop == -1){
+					stop = i;
 				}
-				else if(get_schedule_node_end_time(get_list_node_data(S->schedule[stop])) > get_schedule_node_end_time(get_list_node_data(S->schedule[i]))){//sinon si le temps de fin de la tâche de la machine stop est supérieur au temps de fin de la tâche de la machine i
-					stop = i;//on affecte à stop la machine i
-				}else{
-					stop = stop;//sinon on ne fait rien
+				else if(get_schedule_node_end_time(get_list_node_data(S->machines[stop])) > get_schedule_node_end_time(get_list_node_data(S->machines[i]))){
+					stop = i;
 				}
 			}
 		}
 	}
-	return stop;//on retourne stop
+	return stop;
 }
 
 void add_task_to_schedule(struct schedule_t * S, struct task_t * task, int machine, unsigned long bt, unsigned long et) {
@@ -195,15 +194,15 @@ void add_task_to_schedule(struct schedule_t * S, struct task_t * task, int machi
 }
 
 unsigned long preempt_task(struct schedule_t * S, int machine, unsigned long new_et) {
-	assert(machine >= 0 || machine < S->num_machines);//on vérifie que la machine est valide
-	struct list_t * list = S->schedule[machine];//on récupère la liste de la machine
-	struct list_node_t * node = get_list_tail(list);//on récupère le dernier élément de la liste
-	struct task_t * task = get_list_node_data(node);//on récupère la tâche de la machine
-	assert(task == NULL);//on vérifie que la tâche n'est pas null
-	unsigned long old_et = task->release_time + task->processing_time;//on récupère le temps de fin de la tâche
-	task->processing_time = new_et - task->release_time;//on modifie le temps de traitement de la tâche
-	S->machines[machine]->tail->end_time = new_et;//on modifie le temps de fin de la tâche
-	return new_et;
+    assert(machine >= 0 && machine < S->num_machines);
+    struct list_t * list = S->schedule[machine];
+    struct list_node_t * node = get_list_tail(list);
+    assert(node != NULL && node->data != NULL);
+    struct task_t * task = get_list_node_data(node);
+    unsigned long old_et = task->release_time + task->processing_time;
+    task->processing_time = new_et - task->release_time;
+    S->machines[machine]->tail->end_time = new_et - 1;
+    return new_et;
 }
 
 unsigned long get_makespan(struct schedule_t * S) {
