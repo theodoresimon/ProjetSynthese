@@ -95,7 +95,63 @@ nbinstances=10
 # afin d'avoir une idée des différents cas à traiter.
 # N'oubliez pas à remettre les # dans les deux lignes !
 
-# A FAIRE
+while getopts "d:n:m:s:t:x:y:z:h" opt; do
+  case $opt in
+    d)
+      dir=$OPTARG
+      ;;
+    n)
+      nbjobsmin=$OPTARG
+      ;;
+    m)
+      nbjobsmax=$OPTARG
+      ;;
+    s)
+      nbjobsstep=$OPTARG
+      ;;
+    t)
+      tmin=$OPTARG
+      ;;
+    x)
+      tmax=$OPTARG
+      ;;
+    y)
+      tstep=$OPTARG
+      ;;
+    z)
+      nbinstances=$OPTARG
+      ;;
+    h)
+      usage
+      exit 0
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      usage
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+# Fonction d'affichage de l'utilisation
+usage() {
+  echo "Usage: $0 [-d dir] [-n nbjobsmin] [-m nbjobsmax] [-s nbjobsstep] [-t tmin] [-x tmax] [-y tstep] [-z nbinstances] [-h]" >&2
+  echo "Options:" >&2
+  echo "  -d dir           Directory to store the generated instances (default: collection)" >&2
+  echo "  -n nbjobsmin     Minimum number of jobs (default: 10)" >&2
+  echo "  -m nbjobsmax     Maximum number of jobs (default: 100)" >&2
+  echo "  -s nbjobsstep    Step between minimum and maximum number of jobs (default: 10)" >&2
+  echo "  -t tmin          Minimum processing time (default: 0.1)" >&2
+  echo "  -x tmax          Maximum processing time (default: 0.5)" >&2
+  echo "  -y tstep         Step between minimum and maximum processing time (default: 0.1)" >&2
+  echo "  -z nbinstances   Number of instances to generate (default: 10)" >&2
+  echo "  -h               Display this help message" >&2
+}
 
 
 # GÉNÉRATION DES INSTANCES ALÉATOIRES
@@ -115,4 +171,11 @@ nbinstances=10
 
 mkdir -p $dir
 
-# A FAIRE
+for nbjobs in $(seq $nbjobsmin $nbjobsstep $nbjobsmax); do
+  for t in $(seq $tmin $tstep $tmax); do
+    for i in $(seq 1 $nbinstances); do
+      filename="$dir/${nbjobs}_${t}_${i}"
+      ./generate_instance.sh $filename $nbjobs $t
+    done
+  done
+done

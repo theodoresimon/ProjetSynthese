@@ -24,7 +24,15 @@ LC_NUMERIC=en_US.UTF-8
 # le cas contraire.
 # Assurez vous que le premier paramètre correspond bien à un répertoire.
 
-# A FAIRE
+if [ $# -ne 5 ]; then
+    echo "Usage: $0 <directory> <results_file> <min_machines> <max_machines> <step_machines>"
+    exit 1
+fi
+
+if [ ! -d $1 ]; then
+    echo "Error: $1 is not a directory."
+    exit 1
+fi
 
 # Affectation des paramètres aux variables.
 
@@ -48,4 +56,9 @@ m_step=$5
 # Colonnes 5-12 : résultats obtenus par l'exécution du programme "./expe"
 # Les colonnes sont séparées par une espace.
 
-# A FAIRE
+for instance in $dir/*; do
+    for m in $(seq $m_min $m_step $m_max); do
+        result=$(./expe $instance $m)
+        echo "$(basename $instance) $m $result" >> $fname
+    done
+done

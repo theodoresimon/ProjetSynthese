@@ -53,7 +53,15 @@ getParetoDistributionSample () {
 # le cas contraire.
 # Affectez les paramètres aux variables.
 
-# A FAIRE
+if [[ $# -ne 3 ]]; then
+    echo "Nombre de paramètres incorrect"
+    echo "Usage: ./script.sh nom_fichier nb_taches parametre_date_lib"
+    exit 1
+fi
+
+filename=$1
+nb_tasks=$2
+date_lib=$3
 
 
 # GÉNÉRATION DE DURÉES OPÉRATOIRES ALÉATOIRES
@@ -64,8 +72,7 @@ getParetoDistributionSample () {
 # distribution Pareto. Pour la générer aléatoirement, il faut appeler la
 # fonction getParetoDistributionSample.
 
-# A FAIRE
-
+processing_times=($(seq $nb_tasks | while read; do getParetoDistributionSample; done))
 
 # GÉNÉRATION DE DATES DE LIBÉRATION ALÉATOIRES
 #
@@ -76,7 +83,20 @@ getParetoDistributionSample () {
 # aléatoirement une valeur dans l'intervalle [min,max]=[0, t*somme], ou t
 # correspond au troisième paramètre du script.
 
-# A FAIRE
+# Calcul de la somme des durées opératoires
+sum=0
+for p in "${processing_times[@]}"
+do
+  sum=$((sum + p))
+done
+
+# Génération des dates de libération aléatoires
+for (( i=0; i<$nb_tasks; i++ ))
+do
+  release_date=$(getNormalDistributionSample 0 $(($date_lib * $sum)))
+  release_dates[$i]=$release_date
+done
+
 
 
 # ÉCRITURE DES DONNÉES GÉNÉRÉES AU FICHIER
@@ -84,4 +104,7 @@ getParetoDistributionSample () {
 # Format du fichier à créer (chaque ligne) :
 # 		job_id processing_time release_date
 
-# A FAIRE
+for (( i=0; i<$nb_tasks; i++ ))
+do
+  echo "${task_ids[$i]} ${processing_times[$i]} ${release_dates[$i]}" >> $filename
+done
