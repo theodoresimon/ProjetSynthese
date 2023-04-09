@@ -70,13 +70,33 @@ void delete_schedule_node(void * snode) {
  ********************************************************************/
 
 struct schedule_t * new_schedule(int num_m) {
-	assert(num_m >= 1);//on vérifie que le nombre de machines est supérieur ou égal à 1
-	struct schedule_t * S = (struct schedule_t *) malloc(sizeof(struct schedule_t));//on alloue de la mémoire pour l'ordonnancement
-	for(int i = 0; i < num_m; i++){//on parcourt toutes les machines
-		S->machines[i] = new_list(view_schedule_node, delete_schedule_node);//on initialise la liste de la machine i
-	}
-	S->num_machines = num_m;//on initialise le nombre de machines
-	return S;//on renvoie l'ordonnancement
+    assert(num_m >= 1);
+
+    struct schedule_t * S = (struct schedule_t *) malloc(sizeof(struct schedule_t));
+    if (!S) {
+        return NULL;
+    }
+
+    S->num_machines = num_m;
+    S->machines = (struct list_t **) malloc(num_m * sizeof(struct list_t *));
+    if (!S->machines) {
+        free(S);
+        return NULL;
+    }
+
+    for(int i = 0; i < num_m; i++){
+        S->machines[i] = new_list(view_schedule_node, delete_schedule_node);
+        if (!S->machines[i]) {
+            for (int j = 0; j < i; j++) {
+                delete_list(S->machines[j]);
+            }
+            free(S->machines);
+            free(S);
+            return NULL;
+        }
+    }
+
+    return S;
 }
 
 struct list_t * get_schedule_of_machine(const struct schedule_t * S, const int machine) {
@@ -89,16 +109,17 @@ int get_num_machines(const struct schedule_t * S) {
 }
 
 void view_schedule(const struct schedule_t * S) {
-	fprintf(stdout, "Schedule: %d machines", S->num_machines);//on affiche le nombre de machines
-	for(int i = 0; i < S->num_machines; i++){//on parcourt toutes les machines
-		fprintf(stdout, "Machine %d\n", i);//on affiche la machine
-		for(struct list_node_t* temp = get_list_head(get_schedule_of_machine(S,i));temp != NULL;temp = temp->successor){//on parcourt la liste de la machine i
-			view_task(get_schedule_node_task(get_list_node_data(S->machines[i])));//on affiche la tâche de la machine i
-			//on saute une ligne pour plus de visibilité dans le terminal
-			fprintf(stdout, "\n");
-
-		}
-	}
+    if (S == NULL) {
+        return;
+    }
+    fprintf(stdout, "Schedule: %d machines", S->num_machines);
+    for (int i = 0; i < S->num_machines; i++) {
+        fprintf(stdout, "Machine %d\n", i);
+        for (struct list_node_t * temp = get_list_head(get_schedule_of_machine(S,i)); temp != NULL; temp = temp->successor) {
+            view_task(get_schedule_node_task(get_list_node_data(temp)));
+            fprintf(stdout, "\n");
+        }
+    }
 }
 
 void delete_schedule(struct schedule_t * S) {

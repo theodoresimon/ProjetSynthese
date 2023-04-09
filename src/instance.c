@@ -60,15 +60,22 @@ Instance read_instance(const char * filename) {
 	size_t len = 0;// taille initiale de la chaine de caractère(0 pour que getline alloue la mémoire)
 	ssize_t read;// nombre de caractère lu par la ligne courante
 	char *token;// chaine de caractère pour stocker chaque partie de la ligne (id, processing time, release time)
-	char delim="";//Délimiteur
+	char delim=' ';//Délimiteur
 	while ((read = getline(&line, &len, file)) != -1) {
 		//découpe la ligne en 3 parties,
 		token=strtok(line,delim);//id
+		char* endptr; // pointeur pour vérifier si la conversion a réussi
 		char *id=token;//convertit la chaine de caractère en char *
 		token=strtok(NULL,delim);//processing time
-		unsigned long processing_time=strtoul(token,NULL,10);//convertit la chaine de caractère en unsigned long
+		unsigned long processing_time=strtoul(token,&endptr,10);//convertit la chaine de caractère en unsigned long
+		if (endptr == token || *endptr != '\0') { // la conversion a échoué
+			ShowMessage("erreur processing time ",1);
+		}
 		token=strtok(NULL,delim);//release time
-		unsigned long release_time=strtoul(token,NULL,10);//convertit la chaine de caractère en unsigned long
+		unsigned long release_time=strtoul(token,&endptr,10);//convertit la chaine de caractère en unsigned long
+		if (endptr == token || *endptr != '\0') { // la conversion a échoué
+			ShowMessage("erreur releasedtime",1);
+		}
 		//crée une nouvelle tâche avec ces 3 parties et l'ajoute à l'instance
 		struct task_t * task = new_task(id, processing_time, release_time);//crée une nouvelle tâche
 		add_to_list(I, task);//ajoute la tâche à l'instance
@@ -91,7 +98,7 @@ void delete_instance(Instance I, int deleteData) {
 	while (node) {//parcours la liste
 		struct list_node_t * next = node->next;//pointeur sur le prochain élément de la liste
 		if (deleteData){//si deleteData est vrai
-			i->deleteData(node->data);//supprime les données de la tâche
+			I->deleteData(node->data);//supprime les données de la tâche
 		}
 		free(node);//libère la mémoire allouée pour le noeud
 		node = next;//passe au noeud suivant
