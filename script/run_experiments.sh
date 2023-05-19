@@ -55,8 +55,9 @@ m_step=$5
 # Les colonnes sont séparées par une espace.
 
 for instance in $dir/*; do
-    for m in $(seq $m_min $m_step $m_max); do
-        result=$(./expe $instance $m)
-        echo "$(basename $instance) $m $result" >> $fname
+    for m in $(seq "$m_min" "$m_step" "$m_max"); do
+        result=$(./expe "$instance" "$m")
+        num_tasks=$(basename "$instance" | cut -d'_' -f1)
+        echo "$num_tasks $m $result" >> "$fname"
     done
 done

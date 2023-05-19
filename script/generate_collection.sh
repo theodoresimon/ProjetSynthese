@@ -171,11 +171,17 @@ usage() {
 
 mkdir -p $dir
 
-for nbjobs in $(seq $nbjobsmin $nbjobsstep $nbjobsmax); do
-  for t in $(seq $tmin $tstep $tmax); do
-    for i in $(seq 1 $nbinstances); do
-      filename="$dir/${nbjobs}_${t}_${i}"
-      ./generate_instance.sh $filename $nbjobs $t
+count=1
+
+for nbjobs in $(seq $nbjobsmin $nbjobsstep $nbjobmax); do
+  if (( nbjobs > nbjobsmax )); then
+    break
+  fi
+  for t in $(seq $tmin $tmax); do
+    for (( i=1 ; i<=$nbinstances; i++ )); do
+      instance_filename="${nbjobs}_${t}_${count}"
+      ((count++))
+      ./generate_instance.sh -n $nbjobs -t $t > "$dir/$instance_filename"
     done
-  done
-done
+  done 
+done 

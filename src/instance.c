@@ -63,22 +63,22 @@ Instance read_instance(const char * filename) {
 	char delim=' ';//Délimiteur
 	while ((read = getline(&line, &len, file)) != -1) {
 		//découpe la ligne en 3 parties,
-		token=strtok(line,delim);//id
+		token=strtok(line,&delim);//id
 		char* endptr; // pointeur pour vérifier si la conversion a réussi
 		char *id=token;//convertit la chaine de caractère en char *
-		token=strtok(NULL,delim);//processing time
+		token=strtok(NULL,&delim);//processing time
 		unsigned long processing_time=strtoul(token,&endptr,10);//convertit la chaine de caractère en unsigned long
 		if (endptr == token || *endptr != '\0') { // la conversion a échoué
 			ShowMessage("erreur processing time ",1);
 		}
-		token=strtok(NULL,delim);//release time
+		token=strtok(NULL,&delim);//release time
 		unsigned long release_time=strtoul(token,&endptr,10);//convertit la chaine de caractère en unsigned long
 		if (endptr == token || *endptr != '\0') { // la conversion a échoué
 			ShowMessage("erreur releasedtime",1);
 		}
 		//crée une nouvelle tâche avec ces 3 parties et l'ajoute à l'instance
 		struct task_t * task = new_task(id, processing_time, release_time);//crée une nouvelle tâche
-		add_to_list(I, task);//ajoute la tâche à l'instance
+		list_insert_after(I,task, get_list_tail(I));//ajoute la tâche à l'instance
 	}
 	//Libère la mémoire
 	free(line);//libère la mémoire allouée par getline

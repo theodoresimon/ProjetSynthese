@@ -213,161 +213,81 @@ int ready_task_preceed(const void * a, const void * b) {
  * The algorithm
  ********************************************************************/
 
-// La fonction SPT calcule une ordonnance de tâches en utilisant l'algorithme Shortest Processing Time First (SPT).
-// Elle prend en entrée le nombre de machines ainsi que deux arbres de recherche contenant les tâches prêtes à être exécutées (ready_tasks) et les événements du calendrier (E).
-struct schedule_t * SPT(int num_m, struct tree_t *ready_tasks, struct tree_t *E) {
-    // Création d'une nouvelle structure schedule_t pour stocker l'ordonnance.
-    struct schedule_t *S = new_schedule(num_m);
-    // Déclaration de variables locales.
-    struct event_key_t *event;
-    struct task_t *ready_task1, *ready_task2;
-    void **key = NULL, **data = NULL;
-    // Création d'un nouvel arbre de recherche Q pour stocker les tâches prêtes à être exécutées qui ne peuvent pas encore être assignées à une machine.
-    struct tree_t *Q = new_tree(0,ready_task_preceed,view_event_key,view_ready_task_key, delete_event_key,delete_ready_task_key);
-    int i, j;
-
-    // Tant que l'arbre de recherche E n'est pas vide, on exécute le corps de la boucle.
-
-    while (!tree_is_empty(E)) {
-        // Trouver l'événement le plus tôt dans E
-        struct tree_node_t *minNode = tree_min(get_root(E));
-        event = (struct event_key_t *)minNode->key;
-        key = (void **)&event->event_time;
-        data = (void **)&minNode->data;
-
-        // Retirer l'événement de E
-        tree_remove(E, event);
-
-        i = *(int *)*key;
-        if (i == 0) {
-            // Si l'événement est un départ de tâche prête, 
-            // trouver une machine vide pour y placer la tâche
-            int M = find_empty_machine(S, i);
-            ready_task1 = *(struct task_t **)data;
-            if (M >= 0) {
-                // Si une machine est disponible, ajouter la tâche à la planification S
-                // et ajouter un événement de fin pour cette tâche dans E
-                add_task_to_schedule(S, ready_task1, M, i, i + ready_task1->processing_time);
-                tree_insert(E, new_event_key(get_event_type(minNode->key),key,i + ready_task1->processing_time, ready_task1->id, num_m), data);
-            } else {
-                // Si aucune machine n'est disponible, ajouter la tâche dans Q pour plus tard
-                tree_insert(Q, new_ready_task_key(i + ready_task1->processing_time, ready_task1->id),data);
-            }
-        } else if (i == 1) {
-            // Si l'événement est une fin de tâche, ajouter la tâche suivante à la planification S
-            ready_task2 = *(struct task_t **)data;
-            if (!tree_is_empty(Q)) {
-                // Si Q n'est pas vide, prendre la tâche prête la plus tôt
-                // et l'ajouter à la planification S avec la machine de la tâche qui vient de finir
-                struct tree_node_t *ready_task_node = tree_min(get_root(Q));
-                ready_task1 = *(struct task_t **)&ready_task_node->data;
-                add_task_to_schedule(S, ready_task1, ready_task2, i, i + ready_task1->processing_time);
-                // Ajouter un événement de fin pour la tâche ajoutée à S
-                tree_insert(E, new_event_key(get_event_type(minNode->key),get_event_time(minNode->key), i + ready_task1->processing_time, ready_task1->id,num_m), data);
-                // Retirer la tâche ajoutée de Q
-                tree_remove(Q, ready_task_node);
-            } else {
-                // Si Q est vide, ajouter simplement la tâche qui vient de finir à la planification S
-                j = i + ready_task2->processing_time;
-                add_task_to_schedule(S, ready_task2, num_m, i, j);
-            }
-        } 
-    }
-    // Retourner la planification S complète
-    return S;
-}
-
-struct schedule_t * SRPT(int num_m, struct tree_t* ready_tasks, struct tree_t* E) {
-    struct schedule_t * S = new_schedule(num_m);
-    struct event_key_t* event;
-    struct task_t* ready_task1;
-    struct task_t* ready_task2;
-    void* key = NULL;
-    void* data = NULL;
-    int i,j;
-
-    // on parcourt les tâches pour extraire la clef et les données
-    while (!tree_is_empty(ready_tasks)) {
-        struct tree_node_t* minNode = tree_min(get_root(ready_tasks));
-        if (key == NULL) {
-            key = minNode->key;
-        }
-        if (data == NULL) {
-            data = minNode->data;
-        }
-        tree_remove(ready_tasks, get_tree_node_key(minNode));
-
-        ready_task1 = (struct task_t*)data;
-
-        // on insère l'événement de début de tâche dans l'arbre des événements
-        tree_insert(E, new_event_key(0, ready_task1->release_time, 0, ready_task1->id, -1), ready_task1);
-
-        // on trouve une machine libre pour exécuter la tâche
-        i = find_empty_machine(S, ready_task1->release_time);
-        if (i >= 0) { // si une machine est libre
-            add_task_to_schedule(S, ready_task1, i, ready_task1->release_time, ready_task1->release_time + ready_task1->processing_time); // on ajoute la tâche à la machine
-            tree_insert(E, new_event_key(1, ready_task1->release_time + ready_task1->processing_time, 1, ready_task1->id, i), ready_task1); // on insère l'événement de fin de tâche dans l'arbre des événements
-        } else { // sinon, on doit ajouter la tâche dans la file d'attente des tâches prêtes
-            tree_insert(ready_tasks, new_ready_task_key(ready_task1->processing_time, ready_task1->id), ready_task1); // on insère la tâche dans l'arbre des tâches prêtes
-        }
-    }
-
-    // on reproduit le pattern décrit dans le diaporama
-    while (!tree_is_empty(E)) {
-        struct tree_node_t* minNode = tree_min(get_root(E));
-        key = minNode->key;
-        data = minNode->data;
-        tree_remove(E, get_tree_node_key(minNode));
-
-        event = (struct event_key_t*)key;
-        i = event->machine;
-        j = event->task_id;
-
-        if (event->event_type == 0) {
-        if (get_task(ready_tasks, event->task_id) != NULL) {
-            ready_task2 = get_task(ready_tasks, event->task_id);
-            int machine_index = find_empty_machine(S, event->event_time);
-            if (machine_index != -1) {
-                add_task_to_schedule(S, ready_task2, machine_index, event->event_time, event->event_time + ready_task2->processing_time);
-                tree_insert(E, new_event_key(1, event->event_time + ready_task2->processing_time, 1, event->task_id, machine_index), ready_task2);
-            } else {
-                tree_insert(ready_tasks, new_ready_task_key(ready_task2->processing_time, event->task_id), ready_task2);
-            }
-        } else {
-            printf("Error: Task %d not found in ready tasks\n", event->task_id);
-        }
-    } else if(event->event_type == 1){
-        int machine_index = find_empty_machine(S, event->event_time);
-        if(machine_index != -1){
-            if(!tree_is_empty(ready_tasks)){
-                ready_task2 = tree_min(ready_tasks);
-                add_task_to_schedule(S, ready_task2, machine_index, event->event_time, event->event_time + ready_task2->processing_time);
-                tree_insert(E, new_event_key(1, event->event_time + ready_task2->processing_time, 1, ready_task2->id, machine_index), ready_task2);
-                tree_remove(ready_tasks, get_tree_node_key(tree_min(get_root(ready_tasks))));
-            }
-        }
-    }
-	}
-    delete_event_key(event);
-    view_schedule(S);
-}
-
 
 struct schedule_t * create_schedule(Instance I, int num_m, int preemption, int balanced_tree) {
-	struct tree_t * ready_tasks = new_tree(balanced_tree,ready_task_preceed,view_ready_task_key,view_task,delete_ready_task_key,delete_task);//on crée un nouvel arbre
-	struct tree_t * E = new_tree(balanced_tree,event_preceed,view_event_key,view_task,delete_event_key,delete_task);//on crée un nouvel arbre
-	for(struct list_node_t * N = get_list_head(I); N != NULL; N = get_list_node_next(N)){//on parcourt les tâches
-		struct task_t * task =(struct task_t *) get_list_node_data(N);//on récupère les données du noeud
-		struct event_key_t * event = new_event_key(0,task->release_time,task->processing_time,task->id,0);//on crée un nouvel événement
-		tree_insert(E,event,task);//on insère l'événement dans l'arbre
-	}
-    struct schedule_t * S;
-    if(preemption==1){
-	    S = SRPT(num_m,ready_tasks,E);//on crée un nouveau schedule
-    }else{
-        S= SPT(num_m,ready_tasks,E);
+   struct schedule_t *S = new_schedule(num_m);
+    
+    //Arbre qui contient les ready_task en file d'attente Q 
+    struct tree_t *Q = new_tree(balanced_tree, ready_task_preceed, view_ready_task_key, view_task, delete_ready_task_key, delete_task);
+    
+    //Arbre qui contient l'ensemble des evenements 
+    struct tree_t *E = new_tree(balanced_tree,event_preceed,view_event_key,view_task,delete_event_key,delete_task);
+    
+    //Ajouter les dates de libération de toutes les tâches dans l'ensemble des événements
+    for(struct list_node_t *curr = get_list_head(I); curr != NULL ; curr = get_successor(curr)) {
+        struct task_t *task = get_list_node_data(curr);
+        struct event_key_t *ev = new_event_key(0, get_task_release_time(task), get_task_processing_time(task), get_task_id(task), 0);
+        tree_insert(E, ev, task);
     }
-	delete_tree(ready_tasks,1,1);//on libère la mémoire de l'arbre
-	delete_tree(E,1,1);//on libère la mémoire de l'arbre
-	return S;//on retourne le schedule
+    while(!tree_is_empty(E)) {
+        struct tree_node_t *eventMin = tree_min(get_root(E));
+        if(get_event_type(get_tree_node_key(eventMin)) == 0) { // Si l'événement est la libération d'une tâche Tj
+            int emptyMachine = find_empty_machine(S,get_event_time(get_tree_node_key(eventMin)));
+            if(emptyMachine != -1) { // Si une machine est libre à l'instant de libération de la tâche Tj
+                struct task_t *task = (struct task_t *) get_tree_node_data(eventMin);
+                add_task_to_schedule(S, task, emptyMachine, get_event_time(get_tree_node_key(eventMin)), get_event_time(get_tree_node_key(eventMin)) + get_event_processing_time(get_tree_node_key(eventMin)));
+                
+                // Ajouter l'événement "fin d'exécution" de la tâche Tj dans l'ensemble des événements
+                struct event_key_t *endEvent = new_event_key(1, get_task_release_time(task) + get_task_processing_time(task), 0, get_task_id(task), emptyMachine);
+                tree_insert(E,endEvent,task);
+            } else if (preemption) { // Si toutes les machines sont occupées et on est en mode préemptif
+                int interMachine = find_machine_to_interrupt(S, get_event_time(eventMin->key), get_event_processing_time(eventMin));
+                if(interMachine != -1 ) {
+                    // Préempter la tâche en cours d'exécution sur la machine interMachine(//On prempt la tache)
+                    unsigned long preempt = preempt_task(S, interMachine, get_event_time(get_tree_node_key(eventMin)));
+
+                    //On supprime l'evenement de fin de E 
+                    struct schedule_node_t * sNode = get_list_node_data(get_list_tail(get_schedule_of_machine(S,interMachine)));
+                    struct task_t * tasK = get_schedule_node_task(sNode);
+                    //On va recréé la cle de l'evenement à supprimer
+                    struct event_key_t *eventKeyRemv = new_event_key(1,get_schedule_node_end_time(sNode)+preempt,0,get_task_id(tasK),interMachine);
+                    //On supprime le noued 
+                    tasK = tree_remove(E,eventKeyRemv);
+                    delete_event_key(eventKeyRemv);
+                    
+                    // Ajouter la tâche interrompue dans la file d'attente Q
+                    struct ready_task_key_t *intr_key = new_ready_task_key(preempt, get_task_id(tasK));
+                    tree_insert(Q, intr_key, tasK);
+                    // Ajouter l'événement "fin d'exécution" de la tâche Tj dans l'ensemble des événements
+                    struct event_key_t *endEvent2 = new_event_key(1, get_event_time(get_tree_node_key(eventMin)) + get_event_processing_time(get_tree_node_key(eventMin)), 0, get_task_id(get_tree_node_data(eventMin)), interMachine);
+                    tree_insert(E,endEvent2,get_tree_node_data(eventMin));
+                    // Affecter la tâche Tj à la machine interMachine
+                    add_task_to_schedule(S,get_tree_node_data(eventMin),interMachine,get_event_time(get_tree_node_key(eventMin)),get_event_time(get_tree_node_key(eventMin))+get_event_processing_time(get_tree_node_key(eventMin)));
+                } else { // On est en mode préémptif, mais on n'a pas pu faire de préemption
+                    
+                    struct ready_task_key_t *in_key = new_ready_task_key(get_task_processing_time(get_tree_node_data(eventMin)),get_task_id(get_tree_node_data(eventMin)));
+                    tree_insert(Q,in_key ,get_tree_node_data(eventMin));
+                }
+            } else { // Si toutes les machines sont occupées et on n'est pas en mode préemptif, ajouter Tj dans la file d'attente Q
+                struct ready_task_key_t *rt_key = new_ready_task_key(get_task_processing_time(get_tree_node_data(eventMin)), get_task_id(get_tree_node_data(eventMin)));
+                tree_insert(Q, rt_key, get_tree_node_data(eventMin));
+            }
+        } else { // Si l'événement est la fin d'exécution d'une tâche Tj
+            if(!tree_is_empty(Q)) { // Si la file d'attente Q n'est pas vide
+                // Extraire de Q la tâche Tk avec la durée la plus courte (règle SPT)
+                struct tree_node_t * rt_key = tree_min(get_root(Q));
+                // Affecter Tk à la machine qui vient de libérer Mi
+                add_task_to_schedule(S,get_tree_node_data(rt_key),get_event_machine(get_tree_node_key(eventMin)),get_event_time(get_tree_node_key(eventMin)),get_event_processing_time(get_tree_node_key(eventMin)));
+                // Ajouter l'événement "fin d'exécution" de la tâche Tk dans l'ensemble des événements
+                struct event_key_t *endEvent = new_event_key(1, get_event_time(get_tree_node_key(eventMin)) + get_ready_task_remaining_processing_time(get_tree_node_key(rt_key)), 0, get_task_id(get_tree_node_data(rt_key)),get_event_machine(get_tree_node_key(eventMin)));
+                tree_insert(E,endEvent,get_tree_node_data(rt_key));
+                struct task_t *task = (struct task_t *)tree_remove(Q,get_tree_node_data(rt_key));
+            }
+        }
+        // Supprimer l'événement de la fin d'exécution de Tj de l'ensemble des événements
+        struct task_t *taskk = tree_remove(E, get_tree_node_key(eventMin));
+    }
+    delete_tree(Q,1,1);
+    delete_tree(E,1,1);
+    return S;
 }
