@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "util.h"
 #include "list.h"
+#include "tree.h"
 #include "instance.h"
 
 /********************************************************************
@@ -72,25 +74,25 @@ void delete_schedule_node(void * snode) {
 struct schedule_t * new_schedule(int num_m) {
     assert(num_m >= 1);
 
-    struct schedule_t * S = (struct schedule_t *) malloc(sizeof(struct schedule_t));
+    struct schedule_t *S = (struct schedule_t *)malloc(sizeof(struct schedule_t));
     if (!S) {
         return NULL;
     }
 
     S->num_machines = num_m;
-    S->machines = (struct list_t **) malloc(num_m * sizeof(struct list_t *));
-    if (!S->machines) {
+    S->schedule = (struct list_t **)malloc(num_m * sizeof(struct list_t *));
+    if (!S->schedule) {
         free(S);
         return NULL;
     }
 
-    for(int i = 0; i < num_m; i++){
-        S->machines[i] = new_list(view_schedule_node, delete_schedule_node);
-        if (!S->machines[i]) {
+    for (int i = 0; i < num_m; i++) {
+        S->schedule[i] = new_list(view_schedule_node, delete_schedule_node);
+        if (!S->schedule[i]) {
             for (int j = 0; j < i; j++) {
-                delete_list(S->machines[j]);
+                delete_list(S->schedule[j], 1);
             }
-            free(S->machines);
+            free(S->schedule);
             free(S);
             return NULL;
         }
@@ -101,7 +103,7 @@ struct schedule_t * new_schedule(int num_m) {
 
 struct list_t * get_schedule_of_machine(const struct schedule_t * S, const int machine) {
 	assert(machine >= 0 && machine < S->num_machines);//on vérifie que la machine est bien dans l'ordonnancement
-	return S->machines[machine];//on renvoie la liste de la machine
+	return S;//on renvoie la liste de la machine
 }
 
 int get_num_machines(const struct schedule_t * S) {
@@ -124,7 +126,7 @@ void view_schedule(const struct schedule_t * S) {
 
 void delete_schedule(struct schedule_t * S) {
 	for(int i = 0; i < S->num_machines; i++){//on parcourt toutes les machines
-		delete_list(S->machines[i]);//on libère la mémoire de la liste de la machine i
+		delete_list(S->num_machines,1);//on libère la mémoire de la liste de la machine i
 	}
 	free(S);//on libère la mémoire
 }
@@ -132,13 +134,14 @@ void delete_schedule(struct schedule_t * S) {
 // Pour le format du fichier à créer, regardez dans la présentation du cours.
 void save_schedule(struct schedule_t * S, char * filename) {
 	assert(filename == NULL);//on vérifie que le nom du fichier n'est pas nul
-	FILE * file = fopen(filename, "w");//on ouvre le fichier en écriture
+	FILE * file; 
+	file = fopen(filename, "w");//on ouvre le fichier en écriture
 	if(file == NULL){//si l'ouverture a échoué
 		ShowMessage("Fichier impossible à ouvrir",1);//on affiche un message d'erreur
 	}
 	fprintf(file, "%d\n", S->num_machines);//on écrit le nombre de machines dans le fichier
 	for(int i = 0; i < S->num_machines; i++){//on parcourt toutes les machines
-		struct list_t * list = S->machines[i];//on récupère la liste de la machine i
+		struct list_t * list = S->num_machines;//on récupère la liste de la machine i
 		struct schedule_node_t * snode = get_list_head(list);//on récupère le premier nœud de la liste
 			while(snode != NULL){//tant que le nœud n'est pas null
 				fprintf(file, "%s %lu %lu\n", get_task_id(get_schedule_node_task(snode)), get_schedule_node_begin_time(snode), get_schedule_node_end_time(snode));//on écrit les informations du nœud dans le fichier
@@ -154,7 +157,7 @@ int find_empty_machine(struct schedule_t * S, unsigned long time) {
     assert(time >= 0);
 
     for(int i = 0; i < S->num_machines; i++) {
-        struct list_t * list = S->machines[i];
+        struct list_t * list = S->num_machines;
         struct schedule_node_t * snode = get_list_tail(list);
 
         if(snode == NULL || snode->end_time <= time) {
@@ -168,48 +171,65 @@ int find_empty_machine(struct schedule_t * S, unsigned long time) {
 int find_machine_to_interrupt(struct schedule_t * S, unsigned long time, unsigned long processing_time) {
 	assert(S != NULL && time > 0 && processing_time > 0);
 
-	int stop = -1;
-	for(int i = 0; i < S->num_machines; i++){
-		struct list_t * list = S->machines[i];
-		if(list != NULL && !is_list_empty(list)){ // Vérifier que la liste n'est pas vide
-			struct list_node_t * node = get_list_tail(list);
-			struct task_t * task = get_list_node_data(node);
-			if(get_task_duration(task) + get_schedule_node_begin_time(node) <= time){
-				if(stop == -1){
-					stop = i;
-				}
-				else if(get_schedule_node_end_time(get_list_node_data(S->machines[stop])) > get_schedule_node_end_time(get_list_node_data(S->machines[i]))){
-					stop = i;
-				}
-			}
-		}
-	}
-	return stop;
+    int stop = -1;
+    for (int i = 0; i < S->num_machines; i++) {
+        struct list_t *machine = *(S->schedule + i);
+
+        if (machine != NULL && !is_list_empty(machine)) {
+            struct list_node_t *node = get_list_head(machine);
+
+            while (node != NULL) {
+                struct schedule_node_t *schedule_node = get_list_node_data(node);
+                struct task_t *task = schedule_node->task;
+
+                unsigned long remaining_time = time - schedule_node->end_time;
+                if (processing_time <= remaining_time) {
+                    if (stop == -1) {
+                        stop = i;
+                    } else {
+                        struct list_node_t *stop_node = get_list_head(*(S->schedule + stop));
+                        struct schedule_node_t *stop_schedule_node = get_list_node_data(stop_node);
+                        if (schedule_node->end_time > stop_schedule_node->end_time) {
+                            stop = i;
+                        }
+                    }
+                    break; // Sortir de la boucle dès qu'une machine peut être interrompue
+                }
+
+                node = get_list_node_next(node);
+            }
+        }
+    }
+
+    return stop;
 }
 
 void add_task_to_schedule(struct schedule_t * S, struct task_t * task, int machine, unsigned long bt, unsigned long et) {
 	assert(machine >= 0 || machine < S->num_machines);//on vérifie que la machine est valide
 	assert(bt < et);//on vérifie que le temps de début est inférieur au temps de fin
-	list_insert_last(S->machines[machine], new_schedule_node(task, bt, et));//on ajoute la tache en fin de liste de la machine
+	list_insert_last(S->num_machines, new_schedule_node(task, bt, et));//on ajoute la tache en fin de liste de la machine
 }
 
 unsigned long preempt_task(struct schedule_t * S, int machine, unsigned long new_et) {
-    assert(machine >= 0 && machine < S->num_machines);
-    struct list_t * list = S->schedule[machine];
-    struct list_node_t * node = get_list_tail(list);
-    assert(node != NULL && node->data != NULL);
-    struct task_t * task = get_list_node_data(node);
-    unsigned long old_et = task->release_time + task->processing_time;
-    task->processing_time = new_et - task->release_time;
-    S->machines[machine]->tail->end_time = new_et - 1;
-    return new_et;
+    if(machine >= 0 && machine < S->num_machines){
+    	struct list_t * list = S->schedule[machine];
+    	struct list_node_t * node = get_list_tail(list);
+    	assert(node != NULL && node->data != NULL);
+    	struct task_t * task = get_list_node_data(node);
+    	unsigned long old_et = task->release_time + task->processing_time;
+    	task->processing_time = new_et - task->release_time;
+   		S->schedule[machine] = new_et - 1;
+    return new_et;}
+	else{
+		ShowMessage("probleme prempt_task",0);
+	}
 }
 
 unsigned long get_makespan(struct schedule_t * S) {
 	assert(S == NULL);//on vérifie que l'ordonnancement n'est pas null
 	unsigned long makespan = 0;//on initialise la variable makespan à 0
 	for(int i = 0; i < S->num_machines; i++){//on parcourt toutes les machines
-		struct list_t * list = S->machines[i];//on récupère la liste de la machine i
+		struct list_t * list = S->num_machines;//on récupère la liste de la machine i
 		struct schedule_node_t * snode = get_list_tail(list);//on récupère le dernier élément de la liste
 		if(snode != NULL){//si la liste n'est pas vide
 			unsigned long end_time = get_schedule_node_end_time(get_list_node_data(snode));

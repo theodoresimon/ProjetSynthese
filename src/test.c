@@ -84,14 +84,14 @@ void test_list_insert_last() {
 	free(i2);
 	free(i3);
 }
-void test_arbre_non_equilibre_rotate_left=(){
+void test_arbre_non_equilibre_rotate_left(){
 	struct tree_node_t * racine = new_tree_node(5);
 	racine->left = new_tree_node(4);
 	racine->left->left = new_tree_node(3);
 	racine->left->right = new_tree_node(2);
 	racine->right = new_tree_node(6);
 	racine = rotate_left(racine->left);//rotation sur le noeud 4
-	view_tree(racine, 0);
+	view_tree(racine);
 	//Vérification de l'arbre résultant 
 	// Le résultat attendu est :
 	//     5
@@ -111,8 +111,8 @@ void test_arbre_equilibre_rotate_left(){
 	racine->right = new_tree_node(7);
 	racine->right->left = new_tree_node(6);
 	racine->right->right = new_tree_node(8);
-	racine = rotate_left(root->right);//rotation sur le noeud 7
-	view_tree(racine, 0);
+	racine = rotate_left();//rotation sur le noeud 7
+	view_tree(racine);
 
 	//Vérification de l'arbre résultant
 	// Le résultat attendu est :
@@ -133,8 +133,8 @@ void test_arbre_non_equilibre_facteurmoins2_rotate_left(){
 	racine->left->right = new_tree_node(3);
 	racine->left->right->left = new_tree_node(2);
 	racine->left->right->right = new_tree_node(1);
-	racine = rotate_left(root->left);//rotation sur le noeud 5
-	view_tree(racine, 0);
+	racine = rotate_left();//rotation sur le noeud 5
+	view_tree(racine);
 
 	//Vérification de l'arbre résultant
 	// Le résultat attendu est :
@@ -157,7 +157,7 @@ void test_arbre_non_equilibre_rotate_right(){
 	racine->left->right = new_tree_node(2);
 	racine->right = new_tree_node(6);
 	racine = rotate_right(racine->left);//rotation sur le noeud 5
-	view_tree(racine, 0);
+	view_tree(racine);
 	//Vérification de l'arbre résultant 
 	// Le résultat attendu est :
 	//     4
@@ -178,7 +178,7 @@ void test_arbre_equilibre_rotate_right(){
 	racine->right->left = new_tree_node(6);
 	racine->right->right = new_tree_node(8);
 	racine = rotate_right(racine->left);//rotation sur le noeud 3
-	view_tree(racine, 0);
+	view_tree(racine);
 
 	//Vérification de l'arbre résultant
 	// Le résultat attendu est :
@@ -200,7 +200,7 @@ void test_arbre_non_equilibre_facteurmoins2_rotate_right(){
 	racine->left->right->left = new_tree_node(2);
 	racine->left->right->right = new_tree_node(1);
 	racine = rotate_right(racine->left);//rotation sur le noeud 5
-	view_tree(racine, 0);
+	view_tree(racine);
 
 	//Vérification de l'arbre résultant
 	// Le résultat attendu est :

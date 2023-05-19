@@ -38,7 +38,6 @@ void view_task(const void * task) {
 
 void delete_task(void * task) {
 	assert(task);
-	free(task->id);
 	free(task);
 }
 
@@ -49,12 +48,12 @@ void delete_task(void * task) {
 Instance read_instance(const char * filename) {
 	assert(filename);//vérifie que le nom du fichier n'est pas null
 	//Ouvre le fichier
-	FILE * file = fopen(filename, "r");//ouvre le fichier en lecture
-	if (!file) {//si l'ouverture a échoué
+	FILE *file = fopen(filename, "r");//ouvre le fichier en lecture
+	if (file) {//si l'ouverture a échoué
 		ShowMessage("impossible d'ouvrir le fichier",1);
 	}
 	// Initialise une nouvelle instance 
-	Instance I = new_list(sizeof(struct task_t *), view_task, delete_task);
+	Instance I = new_list(view_task, delete_task);
 	// Lit le fichier ligne par ligne
 	char * line = NULL;// chaine de caractère pour stocker chaque ligne du fichier
 	size_t len = 0;// taille initiale de la chaine de caractère(0 pour que getline alloue la mémoire)
@@ -96,9 +95,9 @@ void delete_instance(Instance I, int deleteData) {
 	assert(I);//vérifie que l'instance n'est pas null
 	struct list_node_t * node = I->head;//pointeur sur le premier élément de la liste
 	while (node) {//parcours la liste
-		struct list_node_t * next = node->next;//pointeur sur le prochain élément de la liste
+		struct list_node_t * next = node->successor;//pointeur sur le prochain élément de la liste
 		if (deleteData){//si deleteData est vrai
-			I->deleteData(node->data);//supprime les données de la tâche
+			I->freeData(node->data);//supprime les données de la tâche
 		}
 		free(node);//libère la mémoire allouée pour le noeud
 		node = next;//passe au noeud suivant
