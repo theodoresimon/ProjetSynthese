@@ -180,7 +180,7 @@ for nbjobs in $(seq $nbjobsmin $nbjobsstep $nbjobmax); do
   for t in $(seq $tmin $tmax); do
     for (( i=1 ; i<=$nbinstances; i++ )); do
       instance_filename="${nbjobs}_${t}_${i}"
-      bash generate_instance.sh  "$instance_filename" "$nbjobs" "$t" > "$dir/$instance_filename"
+      bash generate_instance.sh  "$instance_filename" "$nbjobs" "$t" >> "$dir/$instance_filename"
     done
   done 
 done 
