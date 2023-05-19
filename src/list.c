@@ -147,7 +147,7 @@ void delete_list(struct list_t *L, int deleteData)
 	else
 		{
 			while(current != NULL){//permet de parcourir les noeuds tant que la liste n'est pas vide
-				sucessor_node = get_successor(current) //on se sert de ce noeud pour ne pas perdre le successeur de la tête de liste, on libère donc la liste de la tête vers la queue de la liste 
+				sucessor_node = get_successor(current); //on se sert de ce noeud pour ne pas perdre le successeur de la tête de liste, on libère donc la liste de la tête vers la queue de la liste 
 				if ((deleteData == 1) && (L->freeData != NULL)){//comme descrit dans la définition de la fonction
 					L->freeData(current->data);//appelle de la fonction freedata pour libérer la data du noeud courrent
 				}

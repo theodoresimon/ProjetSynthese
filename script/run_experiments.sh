@@ -49,9 +49,7 @@ m_step=$5
 # de $m_min à $m_max avec un pas de $m_step, exécutez le programme "./expe".
 # Pour chaque exécution, vous devez écrire une ligne dans le fichier $fname
 # avec 12 colonnes :
-# Colonne 1 : nombre des tâches de l'instance
-# Colonne 2 : paramètre t de l'instance
-# Colonne 3 : numéro de l'instance avec ces paramètres
+# Colonne 1 : nombre des tâches de l'instance/
 # Colonne 4 : nombre des machines de l'exécution
 # Colonnes 5-12 : résultats obtenus par l'exécution du programme "./expe"
 # Les colonnes sont séparées par une espace.
