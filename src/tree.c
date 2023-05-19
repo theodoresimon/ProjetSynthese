@@ -354,13 +354,13 @@ static struct tree_node_t * insert_into_tree_node(struct tree_node_t * curr, voi
 		int bfactor = get_bfactor(get_left(curr));//on récupère le facteur d'équilibre du fils gauche du noeud courant
 		set_left(curr, insert_into_tree_node(get_left(curr), key, data, balanced, preceed));//on insère le noeud à gauche du noeud courant
 		if (bfactor < get_bfactor(get_left(curr))){//si le facteur d'équilibre du fils gauche du noeud courant est plus petit que le facteur d'équilibre du fils gauche du fils gauche du noeud courant
-			increase(curr);//on décrémente le facteur d'équilibre du noeud courant
+			increase_bfactor(curr);//on décrémente le facteur d'équilibre du noeud courant
 		}
 	}else if(preceed(curr->key, key)&&(get_right(curr)!=NULL)){//si la clé est plus grande que la clé du noeud courant et que le fils droit du noeud courant n'est pas vide
 		int bfactor = get_bfactor(get_right(curr));//on récupère le facteur d'équilibre du fils droit du noeud courant
 		set_right(curr, insert_into_tree_node(get_right(curr), key, data, balanced, preceed));//on insère le noeud à droite du noeud courant
 		if (bfactor > get_bfactor(get_right(curr))){//si le facteur d'équilibre du fils droit du noeud courant est plus grand que le facteur d'équilibre du fils droit du fils droit du noeud courant
-			decrease(curr);//on décrémente le facteur d'équilibre du noeud courant
+			decrease_bfactor(curr);//on décrémente le facteur d'équilibre du noeud courant
 		}
 	}
 	
@@ -437,7 +437,7 @@ struct tree_node_t * tree_max(struct tree_node_t * curr) {
 	// similaire à tree_min
 	assert(!tree_node_is_empty(curr));//on vérifie que le noeud courant n'est pas vide
 	if(curr->right != NULL){//si le fils droit du noeud courant n'est pas vide
-		tree_max(curr->right);//on appelle la fonction récursive tree_max sur le fils droit du noeud courant
+		return tree_max(curr->right);//on appelle la fonction récursive tree_max sur le fils droit du noeud courant
 	}else{
 		return curr;//on retourne le noeud courant
 	}

@@ -91,10 +91,11 @@ do
 done
 
 # Génération des dates de libération aléatoires
+release_dates=()
 for (( i=0; i<$nb_tasks; i++ ))
 do
-  release_date=$(getNormalDistributionSample 0 $(($date_lib * $sum)))
-  release_dates[$i]=$release_date
+  release_date=$(getNormalDistributionSample 0 $(printf "%.0f" $(echo "$sum*$date_lib" | bc  )))
+  release_dates+=("$release_date")
 done
 
 
@@ -103,8 +104,8 @@ done
 #
 # Format du fichier à créer (chaque ligne) :
 # 		job_id processing_time release_date
-
+task_ids=($(seq 1 $nb_tasks))
 for (( i=0; i<$nb_tasks; i++ ))
 do
-  echo "${task_ids[$i]} ${processing_times[$i]} ${release_dates[$i]}" >> $filename
+  echo " ${task_ids[$i]} ${processing_times[$i]} ${release_dates[$i]}" >> $filename
 done

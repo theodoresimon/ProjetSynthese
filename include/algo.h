@@ -2,7 +2,7 @@
 #define _ALGO_H_
 
 #include "instance.h"
-
+#include "tree.h"
 /**
  * @brief Créer et restituer un ordonnancement sur \p m machines en donnant comme entrée l'instance \p I.
  * Le paramètre \p preemption vaut 1 si les préemptions sont autorisées, sinon ça vaut 0.
@@ -15,10 +15,5 @@
  * @return struct schedule_t* 
  */
 struct schedule_t * create_schedule(Instance I, int num_m, int preemption, int balanced_tree);
-
-struct schedule_t SPT(int num_m, struct tree_t *ready_tasks, struct tree_t *E);
-
-void SRPT(int num_m, struct tree_t* ready_tasks, struct tree_t* E); 
-
 
 #endif // _ALGO_H_
